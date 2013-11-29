@@ -1,16 +1,81 @@
-#! /usr/bin/env python
+# =====================================================================================
+#
+# Beat Tracking Evaluation Toolbox - Python [v1.0]
+#
+# =====================================================================================
 
-# Implementations various beat tracking evaluation methods
-# All methods were derived from Matlab implementations by Matthew Davies
-# Python versions by Adam Stark, 2011-2012
-# adamstark.uk@gmail.com
+## @mainpage Beat Tracking Evaluation Toolbox - Python
+#
+# This is a Python implementation of a number of beat tracking
+# evaluation methods, described in a summary paper:
+# - Evaluation Methods for Musical Audio Beat Tracking Algorithms, Matthew E. P. Davies, Norberto Degara and Mark D. Plumbley, Technical Report C4DM-TR-09-06, 2009
+#
+# Software implementation by Matthew Davies and Adam Stark
+#
+# Running the code
+# ------------------
+#
+# First, import the library:
+# > import beat_evaluation_toolbox as be
+#
+# Then, evaluate beat estimations on database of beat annotaions as follows:
+# > R = be.evaluate_db(annotations,beats,measures,doCI)
+#
+# where the arguments are as follows:
+# - 'annotations' is a list of numpy arrays containing the beat annotations for the database
+# - 'beats' is a list of numpy arrays containing the beat estimations for the database
+# - 'measures' is a list of strings indicating which evaluation measures to use. Setting measures='all' calculates all measures. Specific measures can be chosen by setting measures = ['fMeasure','cemgilAcc','gotoAcc','pScore','continuity','infoGain','amlCem'] or a subset thereof.
+# - 'doCI' is a boolean indicating whether or not to calculate confidence intervals
+#
+# and the returned value is:
+# - 'R' is a dictionary containing all results
+#
+# All results will be printed to the terminal once the evaluation is complete.
+#
+# License
+# --------
+#
+# The MIT License (MIT)
+# 
+# @copyright (c) 2012 Matthew Davies and Adam Stark
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
+#
+# =====================================================================================
+
+# =====================================================================================
+## @package beat_evaluation_toolbox
+# Implementations of various beat tracking evaluation methods
+#
+# All methods were derived from Matlab implementations by Matthew Davies.
+#
+# Python versions by Adam Stark, 2011-2012.
+#
+# License: MIT License
+#
+# adamstark.uk [at] gmail.com
+
 
 import numpy as np
 import os, os.path
 
-
-#######################################################################################
-######################## Beat Tracking Evaluation Paramaters ##########################
+# ======================== Beat Tracking Evaluation Paramaters ========================
 #
 # Description:
 # Specify parameters for different beat evaluation methods.
@@ -19,63 +84,76 @@ import os, os.path
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =====================================================================================
 
-# ignore all beats up to this point in seconds
-minBeatTime = 5;
-# size of tolerance window for fmeasure
-fMeasure_thresh = 0.07;
-# standard deviation of gaussian error function
-cemgilAcc_sigma = 0.04;
-# range of time-limited cross-correlation for pscore
-pScore_thresh = 0.2;
-# maximum allowed relative beat error
+## ignore all beats up to this point in seconds
+minBeatTime = 5
+
+## size of tolerance window for fmeasure
+fMeasure_thresh = 0.07
+
+## standard deviation of gaussian error function
+cemgilAcc_sigma = 0.04
+
+## range of time-limited cross-correlation for pscore
+pScore_thresh = 0.2
+
+## maximum allowed relative beat error
 gotoAcc_thresh = 0.35;
-# maximum allowed mean beat error
-gotoAcc_mu = 0.2;
-# maximum allowed standard deviation of beat error
-gotoAcc_sigma = 0.2;
-# size of tolerance window for beat phase in continuity based evaluation
-continuityBased_phaseThresh = 0.175;
-# size of tolerance window for beat period in continuity based evaluation
-continuityBased_periodThresh = 0.175;
-# number of histogram bins for information gain method
-informationGain_numBins = 40;
-# range of fixed time offsets over which to test beat tracking algorithms  
+
+## maximum allowed mean beat error
+gotoAcc_mu = 0.2
+
+## maximum allowed standard deviation of beat error
+gotoAcc_sigma = 0.2
+
+## size of tolerance window for beat phase in continuity based evaluation
+continuityBased_phaseThresh = 0.175
+
+## size of tolerance window for beat period in continuity based evaluation
+continuityBased_periodThresh = 0.175
+
+## number of histogram bins for information gain method
+informationGain_numBins = 40
+
+## range of fixed time offsets over which to test beat tracking algorithms  
 generateResults_offsetRange = np.array(range(-6,7),'float64')*0.01161
-# number of per file evaluation scores to find
-generateResults_numMethods = 9;
-# flag to indicate whether to truncate beats to range of annotations
-generateResults_truncate = 0;
-# flag to indicate whether to show plots or not
-generateResults_plotting = 1;
-# number of bootstrap samples to take
-confidenceInterval_numSamples = 1000;
-# confidence interval
-confidenceInterval_interval = 0.95;
-# number of beats per bar - used in downbeat evaluation
+
+## number of per file evaluation scores to find
+generateResults_numMethods = 9
+
+## flag to indicate whether to truncate beats to range of annotations
+generateResults_truncate = 0
+
+## flag to indicate whether to show plots or not
+generateResults_plotting = 1
+
+## number of bootstrap samples to take
+confidenceInterval_numSamples = 1000
+
+## confidence interval
+confidenceInterval_interval = 0.95
+
+## number of beats per bar - used in downbeat evaluation
 downbeat_numBeatsPerBar = 4
 
 
-#######################################################################################
-################################# Evaluate On A Database ##############################
-#   
-#  Description:
-#  Evaluate beats on a whole database
-#   
-#  Inputs: 
-#  annsList - a list of numpy arrays containing ground truth annotations (in seconds)
-#  beatsList - a list of numpy arrays containing estimated beat locations (in seconds)
-#  offset - a fixed time offset that can be added to each beat
-#  truncate - flag to indicate whether to remove all beats outside of the range of annotations
-#     
-#  (c) 2009 Matthew Davies
+
+# ======================== Evaluate On A Database =====================================
+## Evaluate beats on a whole database
+#
+# @param annsList a list of numpy arrays containing ground truth annotations (in seconds)
+# @param beatsList a list of numpy arrays containing estimated beat locations (in seconds)
+# @param measures a list of strings indicating which evaluation measures to use. Choose from ['fMeasure','cemgilAcc','gotoAcc','pScore','continuity','infoGain','amlCem']
+# @param doCI boolean indicating whether or not confidence intervals should be calculated
+# 
+# (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
+# =====================================================================================
 def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
+    
         
     # if annotations and beats are not lists of the same length
     if (len(annsList) < len(beatsList)):
@@ -272,27 +350,21 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         print "------------------------------------------"
         print " "
 
-        return results
+    return results
 
 
-#######################################################################################
-################################# Evaluate On A Database ##############################
-#   
-#  Description:
-#  Evaluate beats on a whole database
-#   
-#  Inputs: 
-#  annsList - a list of numpy arrays containing ground truth annotations (in seconds)
-#  beatsList - a list of numpy arrays containing estimated beat locations (in seconds)
-#  offset - a fixed time offset that can be added to each beat
-#  truncate - flag to indicate whether to remove all beats outside of the range of annotations
-#     
-#  (c) 2009 Matthew Davies
+# ======================== Evaluate Downbeats On A Database ===========================
+## Evaluate downbeats on a whole database
+#
+# @param annsList a list of numpy arrays containing ground truth annotations (in seconds)
+# @param beatsList a list of numpy arrays containing estimated beat locations (in seconds)
+# @param doCI boolean indicating whether or not confidence intervals should be calculated
+# 
+# (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
+# =====================================================================================
 def downbeatEvaluate_db(annsList,beatsList,doCI = False):
         
     # if annotations and beats are not lists of the same length
@@ -314,9 +386,10 @@ def downbeatEvaluate_db(annsList,beatsList,doCI = False):
     # for each file
     for i in range(numFiles):
         print "Evaluating file ",(i+1)
-            
-        [acc1,acc2,acc3] = downbeatEval(annsList[i],beatsList[i])
-        scores.append(acc1[1])
+        #[acc1,acc2,acc3] = downbeatEval(annsList[i],beatsList[i])
+        dbScore = downbeatEval(annsList[i],beatsList[i])
+        scores.append(dbScore)
+        
 
     print " "
     print "--------------- Results ------------------"                
@@ -345,29 +418,21 @@ def downbeatEvaluate_db(annsList,beatsList,doCI = False):
 
     return results
 
-#######################################################################################
-################################# Evaluation Wrapper ##################################
-#   
-#  Description:
-#  Evaluation wrapper function to get scores for all evaluation methods
-#   
-#  Inputs: 
-#  anns - ground truth annotations (in seconds)
-#  beats - estimated beat locations (in seconds)
-#  offset - a fixed time offset that can be added to each beat
-#  truncate - flag to indicate whether to remove all beats outside of the range of annotations
+
+# ======================== Evaluate Wrapper ===========================================
+## Evaluation wrapper function to get scores for all evaluation methods
 #
-#  Ouputs: 
-#  scores - beat tracking scores for each evaluation method 
-#  binVals - beat error histogram bin values 
-#     
-#  (c) 2009 Matthew Davies
+# @param anns ground truth annotations (in seconds)
+# @param beats estimated beat locations (in seconds)
+# 
+# @returns scores - beat tracking scores for each evaluation method 
+# @returns binVals - beat error histogram bin values 
+#
+# (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
-#def evaluate(anns,beats,params,offset,truncate):
+# =====================================================================================
 def evaluate(anns,beats):   
     
     scores = np.zeros(10)
@@ -385,33 +450,24 @@ def evaluate(anns,beats):
 
 
 
-#######################################################################################
-############################# Continuity Based Evaluation #############################
+# ======================== Downbeat Evaluation ========================================
+## Calculates downbeat scores based upon continuity based accuracy values as used in (Hainsworth, 2004) and (Klapuri et al, 2006)
 #
-#  Description:
-#  Calculate the continuity based accuracy values as used in (Hainsworth, 2004) and (Klapuri et al, 2006)
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  cmlC - beat tracking accuracy, continuity required at the correct metrical level 
-#  cmlT - beat tracking accuracy, continuity not required at the correct metrical level
-#  amlC - beat tracking accuracy, continuity required at allowed metrical levels 
-#  amlT - beat tracking accuracy, continuity not required at allowed metrical levels
-#   
-#  References:
-#  S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
-#  A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+# 
+# @returns downbeatScore - the score for the beats given the annotations
+#
+# References:
+# ------------
+#  - S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
+#  - A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
 #
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
-
+# =====================================================================================
 def downbeatEval(anns,downbeats,nbpb=downbeat_numBeatsPerBar):
 
     # remove beats and annotations that are within the first 5 seconds
@@ -457,7 +513,7 @@ def downbeatEval(anns,downbeats,nbpb=downbeat_numBeatsPerBar):
         testAnns.append(interpedBeats[k::nbpb])
 
     # now generate for double and half time.. (note double time might not be appropriate for odd nbpb)
-    testAnns.append(np.interp(np.arange(0,anns.size+1,1.0/(nbpb/2.0)),np.arange(0,anns.size+1,1),anns))
+    testAnns.append(np.interp(np.arange(0,anns.size,1.0/(nbpb/2.0)),np.arange(0,anns.size,1),anns))
     testAnns.append(anns[0::2])  # pick every other downbeat
     testAnns.append(anns[1::2])  # pick every other downbeat starting on the 2nd
 
@@ -488,39 +544,34 @@ def downbeatEval(anns,downbeats,nbpb=downbeat_numBeatsPerBar):
     # get the best among all conditions
     acc3 = max(totAcc)
 
-    return [acc1,acc2,acc3]
+    downbeatScore = max(acc1[0],acc2[0],acc2[1])
+
+    return downbeatScore
 
 
 
 
-
-#######################################################################################
-############################# Continuity Based Evaluation #############################
+# ======================== Continuity Based Evaluation ================================
+## Calculates continuity based accuracy values as used in (Hainsworth, 2004) and (Klapuri et al, 2006)
 #
-#  Description:
-#  Calculate the continuity based accuracy values as used in (Hainsworth, 2004) and (Klapuri et al, 2006)
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  cmlC - beat tracking accuracy, continuity required at the correct metrical level 
-#  cmlT - beat tracking accuracy, continuity not required at the correct metrical level
-#  amlC - beat tracking accuracy, continuity required at allowed metrical levels 
-#  amlT - beat tracking accuracy, continuity not required at allowed metrical levels
-#   
-#  References:
-#  S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
-#  A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+# 
+# @returns cmlC - beat tracking accuracy, continuity required at the correct metrical level 
+# @returns cmlT - beat tracking accuracy, continuity not required at the correct metrical level
+# @returns amlC - beat tracking accuracy, continuity required at allowed metrical levels 
+# @returns amlT - beat tracking accuracy, continuity not required at allowed metrical levels
+#
+# References:
+# -----------
+#  - S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
+#  - A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
 #
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
-
+# =====================================================================================
 def continuityBased(anns,beats):
     
     # remove beats and annotations that are within the first 5 seconds
@@ -587,7 +638,21 @@ def continuityBased(anns,beats):
 
 
 
-# sub-function for calculating continuity-based accuracy
+
+# ======================== ContinuityEval ============================================
+## Sub-function for calculating continuity-based accuracy
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+# @param t period threshold
+# @param p phase threshold
+# 
+#
+# (c) 2009 Matthew Davies
+#
+# (Python implementation by Adam Stark 2011-2012)
+#
+# =====================================================================================
 def ContinuityEval(anns,beats,t,p):
         
     checkanns = np.zeros(max(anns.size,beats.size))
@@ -637,29 +702,23 @@ def ContinuityEval(anns,beats,t,p):
 
 
 
-
-#######################################################################################
-############################# Cemgil et al. Accuracy Value ############################
-#   
-#  Description:
-#  Calculate the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  a - beat tracking accuracy 
-#   
-#  References:
-#  A. T. Cemgil, B. Kappen, P. Desain, and H. Honing, "On tempo tracking: Tempogram representation and Kalman filtering," Journal Of New Music Research, vol. 28, no. 4, pp. 259-273, 2001
-#   
+# ======================== Cemgil et al. Accuracy Value ==============================
+## Calculates the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns a - beat tracking accuracy 
+#
+# References:
+# -----------
+# - A. T. Cemgil, B. Kappen, P. Desain, and H. Honing, "On tempo tracking: Tempogram representation and Kalman filtering," Journal Of New Music Research, vol. 28, no. 4, pp. 259-273, 2001
+#
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
+# =====================================================================================
 def cemgilAcc(anns,beats):
     
     # remove beats and annotations that are within the first 5 seconds
@@ -703,27 +762,23 @@ def cemgilAcc(anns,beats):
     return a
 
 
-
-
-#######################################################################################
-################ Cemgil Accuracy with Allowed Metrical Levels #########################
-#   
-#  Description:
-#  Calculate Cemgil accuracy but allowing for continuity-based allowed metrical levels
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  amlCem - beat tracking accuracy at allowed metrical levels
-#   
-# (c) 2009 Matthew Davies
+# ================ Cemgil Accuracy with Allowed Metrical Levels ======================
+## Calculates Cemgil accuracy but allowing for continuity-based allowed metrical levels
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns amlCem - beat tracking accuracy at allowed metrical levels
+#
+# References:
+# ------------
+# - "Musicians and Machines: Bridging the Semantic Gap in Live Performance", Adam Stark, PhD Thesis, 2011, Chapter 3
+#
+# (c) 2009 Matthew Davies, Adam Stark
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
-
+# =====================================================================================
 def amlCem(anns,beats):
 
     # remove beats and annotations that are within the first 5 seconds
@@ -777,34 +832,28 @@ def amlCem(anns,beats):
 
 
 
-
-#######################################################################################
-################################## F-MEASURE ##########################################
+# ================================== F-Measure =======================================
+## Calculates the F-measure as used in (Dixon, 2006) and (Dixon, 2007).
 #
-#  Description:
-#  Calculate the F-measure as used in (Dixon, 2006) and (Dixon, 2007).
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#  params - structure of beat evaluation parameters
-#   
-#  Ouputs: 
-#  f - the F-measure
-#  p - precision
-#  r - recall
-#  a - Dixon's related accuracy measure from (Dixon, 2001)
-#   
-#  References:
-#  S. Dixon, "Automatic extraction of tempo and beat from expressive performances," Journal of New Music Research, vol. 30, pp. 39-58, 2001.
-#  S. Dixon, "Onset detection revisited," in Proceedings of 9th International Conference on Digital Audio Effects (DAFx), Montreal, Canada, pp. 133-137, 2006.
-#  S. Dixon, "Evaluation of audio beat tracking system beatroot," Journal of New Music Research, vol. 36, no. 1, pp. 39-51, 2007.
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns f - the F-measure
+# @returns p - precision
+# @returns r - recall
+# @returns a - Dixon's related accuracy measure from (Dixon, 2001)
+#
+# References:
+# ------------
+# - S. Dixon, "Automatic extraction of tempo and beat from expressive performances," Journal of New Music Research, vol. 30, pp. 39-58, 2001.
+# - S. Dixon, "Onset detection revisited," in Proceedings of 9th International Conference on Digital Audio Effects (DAFx), Montreal, Canada, pp. 133-137, 2006.
+# - S. Dixon, "Evaluation of audio beat tracking system beatroot," Journal of New Music Research, vol. 36, no. 1, pp. 39-51, 2007.
 #   
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =====================================================================================
 
 def fMeasure(anns,beats):
     
@@ -907,28 +956,23 @@ def fMeasure(anns,beats):
 
 
 
-#######################################################################################
-################################### P-SCORE ###########################################
-#   
-#  Description:
-#  Calculate the McKinney et al's PScore accuracy value as used in (McKinney et al, 2007).
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  p - beat tracking accuracy 
-#   
-#  References:
-#  
-#  M. F. McKinney, D. Moelants, M. E. P. Davies, and A. Klapuri, "Evaluation of audio beat tracking and music tempo extraction algorithms," Journal of New Music Research, vol. 36, no. 1, pp. 1-16, 2007.
+# ================================== P-Score =======================================
+## Calculate the McKinney et al's PScore accuracy value as used in (McKinney et al, 2007).
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns p - beat tracking accuracy 
+#
+# References:
+# ------------
+# - M. F. McKinney, D. Moelants, M. E. P. Davies, and A. Klapuri, "Evaluation of audio beat tracking and music tempo extraction algorithms," Journal of New Music Research, vol. 36, no. 1, pp. 1-16, 2007.
 #   
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =====================================================================================
 
 def pScore(anns,beats):
     
@@ -980,7 +1024,22 @@ def pScore(anns,beats):
 
     return p
 
-# be_xcorr: computes the cross-correlation between x1 and x2, using lags in the range -maxlags and +maxlags
+
+# ================================== Cross Correlation =======================================
+## computes the cross-correlation between x1 and x2, using lags in the range -maxlags and +maxlags
+#
+# @param x1 first input signal
+# @param x2 second input signal
+# @param maxlags the maximum lag to use
+#
+# @returns x_corr - the cross correlation between x1 and x2
+#   
+# (c) 2009 Matthew Davies, Adam Stark
+#
+# (Python implementation by Adam Stark 2011-2012)
+#
+# =====================================================================================
+
 def be_xcorr(x1,x2,maxlags):
 
     ar_size = x1.size
@@ -1002,27 +1061,24 @@ def be_xcorr(x1,x2,maxlags):
     
     return x_corr
 
-#######################################################################################
-################################### GOTO ACC ##########################################
-#    
-#  Description:
-#  Calculate the Goto and Muraoka's accuracy value as used in (Goto and Muraoka, 1997).
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  a - beat tracking accuracy 
-#   
-#  References:
-#  M. Goto and Y. Muraoka, "Issues in evaluating beat tracking systems," in Working Notes of the IJCAI-97 Workshop on Issues in AI and Music - Evaluation and Assessment, 1997, pp. 9-16.
+
+# ================================== Goto Accuracy =====================================
+## Calculate the Goto and Muraoka's accuracy value as used in (Goto and Muraoka, 1997).
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns a - beat tracking accuracy 
+#
+# References:
+# ------------
+# - M. Goto and Y. Muraoka, "Issues in evaluating beat tracking systems," in Working Notes of the IJCAI-97 Workshop on Issues in AI and Music - Evaluation and Assessment, 1997, pp. 9-16.
 #   
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =======================================================================================
 
 def gotoAcc(anns,beats):
 
@@ -1122,30 +1178,25 @@ def gotoAcc(anns,beats):
 
     return a
 
-                
-#######################################################################################
-############################### INFORMATION GAIN ######################################
-#   
-#  Description:
-#  Calculate the information gain as used in (Davies et al, 2010).
-#   
-#  Inputs: 
-#  anns - sequence of ground truth beat annotations (in seconds)
-#  beats - sequence of estimated beat times (in seconds)
-#   
-#  Ouputs: 
-#  I - beat tracking information gain 
-#  binVals - beat error histogram bin values 
-# 
-#  References:
-#  
-#  M. E. P. Davies, N. Degara and M. D. Plumbley, "Measuring the performance of beat tracking algorithms algorithms using a beat error histogram,"  accepted to IEE Signal Processing Letters.
+
+# ================================== Information Gain ===============================
+## Calculates the information gain as used in (Davies et al, 2010).
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# @returns I - beat tracking information gain 
+# @returns binVals - beat error histogram bin values 
+#
+# References:
+# ------------
+# - M. E. P. Davies, N. Degara and M. D. Plumbley, "Measuring the performance of beat tracking algorithms algorithms using a beat error histogram,"  accepted to IEE Signal Processing Letters.
 #   
 # (c) 2010 Matthew Davies, Norberto Degara
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =====================================================================================
                     
 def informationGain(anns,beats):
     
@@ -1205,7 +1256,17 @@ def informationGain(anns,beats):
 
 
 
-
+# ================================== FindBeatError ===================================
+## Calculates the error of one beat sequence compared to another
+#
+# @param anns sequence of ground truth beat annotations (in seconds)
+# @param beats sequence of estimated beat times (in seconds)
+#
+# (c) 2010 Matthew Davies
+#
+# (Python implementation by Adam Stark 2011-2012)
+#
+# =====================================================================================
 
 def FindBeatError_nor2(anns,beats):
     
@@ -1247,7 +1308,14 @@ def FindBeatError_nor2(anns,beats):
             
     return beatError
 
-
+# ================================== FindEntropy ===================================
+## Calculates the entropy and beat error histogram
+#
+# (c) 2010 Matthew Davies
+#
+# (Python implementation by Adam Stark 2011-2012)
+#
+# =====================================================================================
 
 def FindEntropy(beatError,histBins):
     
@@ -1301,25 +1369,19 @@ def FindEntropy(beatError,histBins):
 
     
 
-
-#######################################################################################
-############################# CONFIDENCE INTERVALS ####################################
-#   
-#  Description:
-#  Work out bootstrapping confidence interval
-#   
-#  Inputs: 
-#  beat tracking scores 
-#   
-#  Ouputs: 
-#  lci - lower confidence interval
-#  uci - upper confidence interval
-#     
+# =============================== Confidence Intervals ===============================
+## Work out bootstrapping confidence interval
+#
+# @param scores beat tracking scores
+#
+# @returns lci - lower confidence interval
+# @returns uci - upper confidence interval
+#
 # (c) 2009 Matthew Davies
 #
 # (Python implementation by Adam Stark 2011-2012)
 #
-#######################################################################################
+# =====================================================================================
 
 def confidenceIntervals(scores):
 
@@ -1360,30 +1422,24 @@ def confidenceIntervals(scores):
 
 
 
-##################################################################################################
-##################################################################################################
-##################################### Other Useful Functions #####################################
-##################################################################################################
-##################################################################################################
+
+#==============================================================================================
+#=================================== Other Useful Functions ===================================
+#==============================================================================================
 
 
-
-
-#######################################################################################
-################################# Print Beats to a Text File ##########################
-#   
-#  Description:
-#  Print out a beat sequence to a text file
-#   
-#  Inputs: 
-#  beats - sequence of beats
-#  path - file path
-#  filename - file name
-#     
-#  (c) 2012 Adam Stark
+# =========================== Print Beats to a Text File =============================
+## Print out a beat sequence to a text file
 #
-#######################################################################################
-
+# @param beats sequence of beats
+# @param filename file name
+# @param path file path
+#
+# (c) 2009 Matthew Davies
+#
+# (Python implementation by Adam Stark 2011-2012)
+#
+# =====================================================================================
 
 # write beats out to a text file
 def beats_to_text_file(beats,filename,path = "beats_out/"):
