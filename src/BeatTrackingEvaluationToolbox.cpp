@@ -135,23 +135,23 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
                 beatsInToleranceWindow.push_back (i);
                 beatUnused[i] = 0;
             }
-            
-            // no beats in window, therefore it's a false negative
-            if (beatsInToleranceWindow.size() == 0)
-            {
-                numFalseNegatives += 1;
-            }
-            // false positive case, more than one beat in a tolerance window
-            else if (beatsInToleranceWindow.size() > 1)
-            {
-                numCorrectDetections += 1;
-                numFalsePositives += 1;
-            }
-            // only one beat in the tolerance window therefore a correct detection
-            else
-            {
-                numCorrectDetections += 1;
-            }
+        }
+        
+        // no beats in window, therefore it's a false negative
+        if (beatsInToleranceWindow.size() == 0)
+        {
+            numFalseNegatives += 1;
+        }
+        // false positive case, more than one beat in a tolerance window
+        else if (beatsInToleranceWindow.size() > 1)
+        {
+            numCorrectDetections += 1;
+            numFalsePositives += 1;
+        }
+        // only one beat in the tolerance window therefore a correct detection
+        else
+        {
+            numCorrectDetections += 1;
         }
     }
     
