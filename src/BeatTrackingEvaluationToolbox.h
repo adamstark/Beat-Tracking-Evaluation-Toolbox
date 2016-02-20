@@ -21,7 +21,6 @@ struct ContinuityResult
 class BeatTrackingEvaluationToolbox
 {
 public:
-    
     //==========================================================================================
     /** Evaluates a given beat sequence against some ground annotation on all evaluation measures
      * and returns the results in a vector
@@ -29,7 +28,7 @@ public:
      * @param annotations sequence of ground truth beat annotations (in seconds)
      */
     static std::vector<double> evaluate (std::vector<double> beats, std::vector<double> annotations);
-    
+
     //==========================================================================================
     /** Calculates continuity based accuracy values as used in (Hainsworth, 2004) and (Klapuri et al, 2006)
      * @param beats sequence of estimated beat times (in seconds)
@@ -48,7 +47,7 @@ public:
      *  - A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
      */
     static ContinuityResult evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations);
-    
+
     //==========================================================================================
     /** Calculates the F-Measure as used in (Dixon, 2006) and (Dixon, 2007).
      * @param beats sequence of estimated beat times (in seconds)
@@ -63,7 +62,8 @@ public:
      * - S. Dixon, "Evaluation of audio beat tracking system beatroot," Journal of New Music Research, vol. 36, no. 1, pp. 39-51, 2007.
      */
     static double evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07);
-    
+
+    static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2);
 
     //==========================================================================================
     /** Calculates the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
@@ -77,9 +77,8 @@ public:
      * - A. T. Cemgil, B. Kappen, P. Desain, and H. Honing, "On tempo tracking: Tempogram representation and Kalman filtering," Journal Of New Music Research, vol. 28, no. 4, pp. 259-273, 2001
      */
     static double evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04);
-    
-    
 
+    //==========================================================================================
     /** Calculates Cemgil accuracy but allowing for continuity-based allowed metrical levels
      * @param beats sequence of estimated beat times (in seconds)
      * @param annotations sequence of ground truth beat annotations (in seconds)
@@ -91,22 +90,24 @@ public:
      * - "Musicians and Machines: Bridging the Semantic Gap in Live Performance", Adam Stark, PhD Thesis, 2011, Chapter 3
      */
     static double evaluateBeatsAmlCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04);
-    
+
 private:
-    
     struct ContinuityEvaluationScores
     {
         double totalAccuracy = 0.;
         double continuityAccuracy = 0.;
     };
-    
+
+    static double sumOfCrossCorrelation (std::vector<double> v1, std::vector<double> v2, int maximumLag);
+
     static ContinuityEvaluationScores continutityEvaluation (std::vector<double> beats, std::vector<double> annotations, double phaseThreshold = 0.175, double periodThreshold = 0.175);
     static std::vector<double> createSetOfAnnotationsAtDoubleTempo (std::vector<double> annotations);
     static std::vector<double> getEveryOtherAnnotationStartingAtIndex (std::vector<double> annotations, int startIndex);
+    static std::vector<int> getIndicesOfNonZeroElements (std::vector<double> array);
     static std::vector<double> removeIfLessThanValue (std::vector<double> array, double value);
     static double meanOfVector (std::vector<double> vector);
-    
-    template<typename T>
+    static double medianOfVector (std::vector<int> vector);
+
+    template <typename T>
     static double maxElement (std::vector<T> array);
-    
 };
