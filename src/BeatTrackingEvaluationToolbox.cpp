@@ -257,6 +257,57 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
 }
 
 //==========================================================================================
+double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations)
+{
+    // remove beats and annotations that are within the first 5 seconds
+    beats = removeIfLessThanValue (beats, 5);
+    annotations = removeIfLessThanValue (annotations, 5);
+
+    // if there are no beats, score zero
+    if (beats.size () == 0)
+        return 0.0;
+
+    // if the beats contain very large values
+    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
+    {
+        // !
+        // looks like the beat times are in samples, not seconds
+        assert (false);
+    }
+
+    for (int k = 1; k < annotations.size () - 1; k++)
+    {
+        double previousInterAnnotationInterval = 0.5 * (annotations[k] - annotations[k - 1]);
+        double windowMin = annotations[k] - previousInterAnnotationInterval;
+
+        double nextInterAnnotationInterval = 0.5 * (annotations[k + 1] - annotations[k]);
+        double windowMax = annotations[k] + nextInterAnnotationInterval;
+
+        std::vector<double> beatsInWindow;
+
+        for (int i = 0; i < beats.size (); i++)
+        {
+            if (beats[i] >= windowMin && beats[i] < windowMax)
+            {
+                beatsInWindow.push_back (beats[i]);
+            }
+        }
+
+        if (beatsInWindow.size () == 0) // false negative case
+        {
+        }
+        else if (beatsInWindow.size () > 1) // false positive case
+        {
+        }
+        else // paired beat, so measure beat error
+        {
+        }
+    }
+
+    return 0.;
+}
+
+//==========================================================================================
 double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma)
 {
     // remove beats and annotations that are within the first 5 seconds

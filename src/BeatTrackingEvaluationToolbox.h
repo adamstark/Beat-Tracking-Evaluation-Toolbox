@@ -63,7 +63,20 @@ public:
      */
     static double evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07);
 
+    //==========================================================================================
+    /** Calculate the PScore accuracy value as used in McKinney et al, 2007.
+     * @param beats sequence of estimated beat times (in seconds)
+     * @param annotations sequence of ground truth beat annotations (in seconds)
+     *
+     * @returns PScore estimate of beat tracking accuracy
+     *
+     * References:
+     * ------------
+     * - M. F. McKinney, D. Moelants, M. E. P. Davies, and A. Klapuri, "Evaluation of audio beat tracking and music tempo extraction algorithms," Journal of New Music Research, vol. 36, no. 1, pp. 1-16, 2007.
+     */
     static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2);
+
+    static double evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations);
 
     //==========================================================================================
     /** Calculates the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
