@@ -17,12 +17,14 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
     double amlCemgilAccuracy = evaluateBeatsAmlCemgilAccuracy (beats, annotations);
     double fMeasure = evaluateBeatsFMeasure (beats, annotations);
     double pScore = evaluateBeatsPScore (beats, annotations);
+    double gotoAccuracy = evaluateBeatsGoto (beats, annotations);
     ContinuityResult continuityResult = evaluateBeatsContinuity (beats, annotations);
 
     results.push_back (cemgilAccuracy);
     results.push_back (amlCemgilAccuracy);
     results.push_back (fMeasure);
     results.push_back (pScore);
+    results.push_back (gotoAccuracy);
     results.push_back (continuityResult.cmlC);
     results.push_back (continuityResult.cmlT);
     results.push_back (continuityResult.amlC);
@@ -39,7 +41,7 @@ ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::ve
     annotations = removeIfLessThanValue (annotations, 5);
 
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
     {
         ContinuityResult result;
 
@@ -106,7 +108,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
     annotations = removeIfLessThanValue (annotations, 5);
 
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
         return 0.0;
 
     // if the beats contain very large values
@@ -121,7 +123,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
     double numFalseNegatives = 0;
     double numCorrectDetections = 0;
 
-    std::vector<double> beatUnused (beats.size (), 1);
+    std::vector<double> beatUnused (beats.size(), 1);
 
     for (auto& annotation : annotations)
     {
@@ -130,7 +132,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
 
         std::vector<double> beatsInToleranceWindow;
 
-        for (int i = 0; i < beats.size (); i++)
+        for (int i = 0; i < beats.size(); i++)
         {
             if (beats[i] >= windowMin && beats[i] <= windowMax && beatUnused[i] == 1)
             {
@@ -140,12 +142,12 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
         }
 
         // no beats in window, therefore it's a false negative
-        if (beatsInToleranceWindow.size () == 0)
+        if (beatsInToleranceWindow.size() == 0)
         {
             numFalseNegatives += 1;
         }
         // false positive case, more than one beat in a tolerance window
-        else if (beatsInToleranceWindow.size () > 1)
+        else if (beatsInToleranceWindow.size() > 1)
         {
             numCorrectDetections += 1;
             numFalsePositives += 1;
@@ -158,7 +160,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
     }
 
     // add any remaining beats to the number of false positives
-    numFalsePositives += std::accumulate (beatUnused.begin (), beatUnused.end (), 0);
+    numFalsePositives += std::accumulate (beatUnused.begin(), beatUnused.end(), 0);
 
     // calculate precision
     double precision = 0;
@@ -202,7 +204,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
     annotations = removeIfLessThanValue (annotations, 5);
 
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
         return 0.0;
 
     // if the beats contain very large values
@@ -222,13 +224,13 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
     std::vector<double> annotationPulseTrain (endPoint * (int)pulseTrainSamplingFrequency, 0.);
     std::vector<double> beatPulseTrain (endPoint * (int)pulseTrainSamplingFrequency, 0.);
 
-    for (int i = 0; i < annotations.size (); i++)
+    for (int i = 0; i < annotations.size(); i++)
     {
         int index = ((int)ceil (annotations[i] * pulseTrainSamplingFrequency)) - 1;
         annotationPulseTrain[index] = 1.;
     }
 
-    for (int i = 0; i < beats.size (); i++)
+    for (int i = 0; i < beats.size(); i++)
     {
         int index = ((int)ceil (beats[i] * pulseTrainSamplingFrequency)) - 1;
         beatPulseTrain[index] = 1.;
@@ -238,16 +240,16 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
 
     std::vector<int> differenceBetweenIndices;
 
-    for (int i = 1; i < indicesOfNonZeroElements.size (); i++)
+    for (int i = 1; i < indicesOfNonZeroElements.size(); i++)
     {
         differenceBetweenIndices.push_back (indicesOfNonZeroElements[i] - indicesOfNonZeroElements[i - 1]);
     }
 
     int maximumLag = (int)round (threshold * medianOfVector (differenceBetweenIndices));
 
-    int numNonZeroBeats = (int)getIndicesOfNonZeroElements (beatPulseTrain).size ();
+    int numNonZeroBeats = (int)getIndicesOfNonZeroElements (beatPulseTrain).size();
 
-    int numNonZeroAnnotations = (int)getIndicesOfNonZeroElements (annotationPulseTrain).size ();
+    int numNonZeroAnnotations = (int)getIndicesOfNonZeroElements (annotationPulseTrain).size();
 
     double pScore = sumOfCrossCorrelation (beatPulseTrain, annotationPulseTrain, maximumLag) / std::max (numNonZeroBeats, numNonZeroAnnotations);
 
@@ -257,14 +259,21 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
 }
 
 //==========================================================================================
-double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations)
+double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations, double threshold, double mu, double sigma)
+
 {
     // remove beats and annotations that are within the first 5 seconds
     beats = removeIfLessThanValue (beats, 5);
     annotations = removeIfLessThanValue (annotations, 5);
 
+    std::vector<int> paired (annotations.size());
+    std::vector<int> beatError (annotations.size());
+    
+    std::fill (paired.begin(), paired.end(), 0);
+    std::fill (beatError.begin(), beatError.end(), 1);
+    
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
         return 0.0;
 
     // if the beats contain very large values
@@ -274,8 +283,8 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
         // looks like the beat times are in samples, not seconds
         assert (false);
     }
-
-    for (int k = 1; k < annotations.size () - 1; k++)
+    
+    for (int k = 1; k < annotations.size() - 1; k++)
     {
         double previousInterAnnotationInterval = 0.5 * (annotations[k] - annotations[k - 1]);
         double windowMin = annotations[k] - previousInterAnnotationInterval;
@@ -283,28 +292,137 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
         double nextInterAnnotationInterval = 0.5 * (annotations[k + 1] - annotations[k]);
         double windowMax = annotations[k] + nextInterAnnotationInterval;
 
-        std::vector<double> beatsInWindow;
+        std::vector<int> beatsInWindow;
 
-        for (int i = 0; i < beats.size (); i++)
+        for (int i = 0; i < beats.size(); i++)
         {
             if (beats[i] >= windowMin && beats[i] < windowMax)
             {
-                beatsInWindow.push_back (beats[i]);
+                beatsInWindow.push_back (i);
             }
         }
 
-        if (beatsInWindow.size () == 0) // false negative case
+        if (beatsInWindow.size() == 0) // false negative case
         {
+            paired[k] = 0;
+            beatError[k] = 1;
         }
-        else if (beatsInWindow.size () > 1) // false positive case
+        else if (beatsInWindow.size() > 1) // false positive case
         {
+            paired[k] = 0;
+            beatError[k] = 1;
         }
         else // paired beat, so measure beat error
         {
+            paired[k] = 1;
+            
+            double error = (float) beats[beatsInWindow[0]] - annotations[k];
+            
+            // if negative use pre_interval
+            if (error < 0)
+            {
+                beatError[k] = error / previousInterAnnotationInterval;
+            }
+            // else positive so use subsequent inter annotation interval
+            else
+            {
+               beatError[k] = error / nextInterAnnotationInterval;
+            }
+
         }
     }
-
-    return 0.;
+    
+    std::vector<int> sequenceOfCorrectBeats;
+    
+    // find the index of the beats that are lower than the threshold
+    for (int i = 0; i < beatError.size(); i++)
+    {
+        if (beatError[i] < threshold)
+            sequenceOfCorrectBeats.push_back (i);
+    }
+    
+    // if there are less than 2 correct beats, we might
+    // run into trouble with indices when doing the calculations
+    // but this is clearly bad beat tracking so return zero
+    if (sequenceOfCorrectBeats.size() < 2)
+    {
+        return 0.;
+    }
+    
+    // --------------------------------
+    // Condition 1: we must have accurate tracking over a segment of 25% of the piece
+    // (note, this is slightly different from the Goto paper and was suggested by
+    // Matthew Davies in his technical paper on beat tracking evaluation)
+    
+    int longestCorrectSequence = 0;
+    int longestSequenceStart = 0;
+    int longestSequenceEnd = 0;
+    int currentSequenceCount = 0;
+    int currentSequenceStart = 0;
+    
+    for (int i = 1; i < sequenceOfCorrectBeats.size(); i++)
+    {
+        if (sequenceOfCorrectBeats[i] - 1 == sequenceOfCorrectBeats[i - 1])
+        {
+            currentSequenceCount++;
+            
+            if (currentSequenceCount > longestCorrectSequence)
+            {
+                longestSequenceStart = currentSequenceStart;
+                longestSequenceEnd = sequenceOfCorrectBeats[i];
+                longestCorrectSequence = currentSequenceCount;
+            }
+        }
+        else
+        {
+            currentSequenceStart = sequenceOfCorrectBeats[i];
+            currentSequenceCount = 0;
+        }
+    }
+    
+    double longestSequenceLengthInSeconds = annotations[longestSequenceEnd] - annotations[longestSequenceStart];
+    
+    bool condition1 = longestSequenceLengthInSeconds  / annotations[annotations.size() - 1] > 0.25;
+    
+    // --------------------------------
+    // Condition 2: Mean of beat error of correct beats must be below mu
+    
+    std::vector<double> beatErrorForCorrectBeats;
+    
+    double sumVal = 0.;
+    for (int  i = 0; i < sequenceOfCorrectBeats.size(); i++)
+    {
+        sumVal += beatError[sequenceOfCorrectBeats[i]];
+    }
+    
+    double mean = sumVal / (double)sequenceOfCorrectBeats.size();
+    
+    bool condition2 = mean < mu;
+    
+    // --------------------------------
+    // Condition 3: Standard deviation of beat error of correct beats must be below sigma
+    
+    double diffSum = 0.0;
+    
+    for (int i = 0; i < sequenceOfCorrectBeats.size(); i++)
+    {
+        double diff = beatError[sequenceOfCorrectBeats[i]] - mean;
+        diffSum += (diff * diff);
+    }
+    
+    double variance = diffSum / (double) (sequenceOfCorrectBeats.size() - 1);
+    double std = sqrt (variance);
+    
+    bool condition3 = std < sigma;
+    
+    if (condition1 && condition2 && condition3)
+    {
+        return 100.00;
+    }
+    else
+    {
+        return 0.0;
+    }
 }
 
 //==========================================================================================
@@ -315,7 +433,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<d
     annotations = removeIfLessThanValue (annotations, 5);
 
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
         return 0.0;
 
     // if the beats contain very large values
@@ -331,7 +449,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<d
     for (auto& annotation : annotations)
     {
         // calculate the time to the nearest beat
-        double timeToNearestBeat = std::numeric_limits<double>::max ();
+        double timeToNearestBeat = std::numeric_limits<double>::max();
 
         for (auto& beat : beats)
         {
@@ -346,7 +464,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<d
     }
 
     // normalise by the mean of the number of annotations and beats
-    cemgilAccuracy = cemgilAccuracy / (0.5 * ((double)beats.size () + (double)annotations.size ()));
+    cemgilAccuracy = cemgilAccuracy / (0.5 * ((double)beats.size() + (double)annotations.size()));
 
     // put into the range 0 to 100%
     cemgilAccuracy *= 100.f;
@@ -362,7 +480,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsAmlCemgilAccuracy (std::vecto
     annotations = removeIfLessThanValue (annotations, 5);
 
     // if there are no beats, score zero
-    if (beats.size () == 0)
+    if (beats.size() == 0)
         return 0.;
 
     // if the beats contain very large values
@@ -401,13 +519,13 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsAmlCemgilAccuracy (std::vecto
 //==========================================================================================
 double BeatTrackingEvaluationToolbox::sumOfCrossCorrelation (std::vector<double> v1, std::vector<double> v2, int maximumLag)
 {
-    int originalVectorSize = (int)v1.size ();
+    int originalVectorSize = (int)v1.size();
 
     std::vector<double> zeroPadding1 (maximumLag, 0.);
     std::vector<double> zeroPadding2 (maximumLag, 0.);
 
-    v1.insert (v1.begin (), zeroPadding1.begin (), zeroPadding1.end ());
-    v2.insert (v2.begin (), zeroPadding2.begin (), zeroPadding2.end ());
+    v1.insert (v1.begin(), zeroPadding1.begin(), zeroPadding1.end());
+    v2.insert (v2.begin(), zeroPadding2.begin(), zeroPadding2.end());
 
     for (int i = 0; i < maximumLag; i++)
     {
@@ -432,24 +550,24 @@ double BeatTrackingEvaluationToolbox::sumOfCrossCorrelation (std::vector<double>
         i++;
     }
 
-    return std::accumulate (crossCorrelation.begin (), crossCorrelation.end (), 0.0);
+    return std::accumulate (crossCorrelation.begin(), crossCorrelation.end(), 0.0);
 }
 
 //==========================================================================================
 BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluationToolbox::continutityEvaluation (std::vector<double> beats, std::vector<double> annotations, double phaseThreshold, double periodThreshold)
 {
-    std::vector<bool> annotationUsed (annotations.size (), false);
-    std::vector<bool> beatsCorrect (beats.size (), false);
+    std::vector<bool> annotationUsed (annotations.size(), false);
+    std::vector<bool> beatsCorrect (beats.size(), false);
 
-    for (int i = 0; i < beats.size (); i++)
+    for (int i = 0; i < beats.size(); i++)
     {
         bool beatCorrect = false;
 
         // calculate the time to the nearest annotation
-        double timeToNearestAnnotation = std::numeric_limits<double>::max ();
+        double timeToNearestAnnotation = std::numeric_limits<double>::max();
         int indexOfNearestAnnotation = 0;
 
-        for (int j = 0; j < annotations.size (); j++)
+        for (int j = 0; j < annotations.size(); j++)
         {
             double timeDifference = fabs (beats[i] - annotations[j]);
 
@@ -513,13 +631,13 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
     // in case every beat was correct, append the last value of the count
     lengthsOfContinuouslyCorrectlyTrackedBeats.push_back (counter);
 
-    double numCorrectBeats = std::accumulate (beatsCorrect.begin (), beatsCorrect.end (), 0);
+    double numCorrectBeats = std::accumulate (beatsCorrect.begin(), beatsCorrect.end(), 0);
 
     double longestTrackedSegment = (double)maxElement (lengthsOfContinuouslyCorrectlyTrackedBeats);
 
     ContinuityEvaluationScores scores;
-    scores.totalAccuracy = 100. * (numCorrectBeats / (double)beatsCorrect.size ());
-    scores.continuityAccuracy = 100. * (longestTrackedSegment / (double)beatsCorrect.size ());
+    scores.totalAccuracy = 100. * (numCorrectBeats / (double)beatsCorrect.size());
+    scores.continuityAccuracy = 100. * (longestTrackedSegment / (double)beatsCorrect.size());
 
     return scores;
 }
@@ -529,7 +647,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::createSetOfAnnotationsAtDoubl
 {
     std::vector<double> doubleTempoAnnotations;
 
-    for (int i = 0; i < annotations.size () - 1; i++)
+    for (int i = 0; i < annotations.size() - 1; i++)
     {
         doubleTempoAnnotations.push_back (annotations[i]);
 
@@ -537,7 +655,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::createSetOfAnnotationsAtDoubl
         doubleTempoAnnotations.push_back (offBeatAnnotation);
     }
 
-    doubleTempoAnnotations.push_back (annotations[annotations.size () - 1]);
+    doubleTempoAnnotations.push_back (annotations[annotations.size() - 1]);
 
     return doubleTempoAnnotations;
 }
@@ -547,7 +665,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::getEveryOtherAnnotationStarti
 {
     std::vector<double> newAnnotations;
 
-    for (int i = startIndex; i < annotations.size (); i += 2)
+    for (int i = startIndex; i < annotations.size(); i += 2)
     {
         newAnnotations.push_back (annotations[i]);
     }
@@ -574,7 +692,7 @@ std::vector<int> BeatTrackingEvaluationToolbox::getIndicesOfNonZeroElements (std
 {
     std::vector<int> indices;
 
-    for (int i = 0; i < array.size (); i++)
+    for (int i = 0; i < array.size(); i++)
     {
         if (array[i] != 0)
             indices.push_back (i);
@@ -584,11 +702,12 @@ std::vector<int> BeatTrackingEvaluationToolbox::getIndicesOfNonZeroElements (std
 }
 
 //==========================================================================================
-double BeatTrackingEvaluationToolbox::meanOfVector (std::vector<double> vector)
+template <typename T>
+double BeatTrackingEvaluationToolbox::meanOfVector (std::vector<T> vector)
 {
-    if (vector.size () > 0)
+    if (vector.size() > 0)
     {
-        return std::accumulate (vector.begin (), vector.end (), 0.0) / (double)vector.size ();
+        return std::accumulate (vector.begin(), vector.end(), 0) / (double)vector.size();
     }
 
     return 0.;
@@ -599,15 +718,15 @@ double BeatTrackingEvaluationToolbox::medianOfVector (std::vector<int> vector)
 {
     double median;
 
-    sort (vector.begin (), vector.end ());
+    sort (vector.begin(), vector.end());
 
-    if (vector.size () % 2 == 0)
+    if (vector.size() % 2 == 0)
     {
-        median = (vector[vector.size () / 2 - 1] + vector[vector.size () / 2]) / 2;
+        median = (vector[vector.size() / 2 - 1] + vector[vector.size() / 2]) / 2;
     }
     else
     {
-        median = vector[vector.size () / 2];
+        median = vector[vector.size() / 2];
     }
 
     return median;
@@ -615,7 +734,40 @@ double BeatTrackingEvaluationToolbox::medianOfVector (std::vector<int> vector)
 
 //==========================================================================================
 template <typename T>
-double BeatTrackingEvaluationToolbox::maxElement (std::vector<T> array)
+T BeatTrackingEvaluationToolbox::maxElement (std::vector<T> array)
 {
-    return *std::max_element (array.begin (), array.end ());
+    return *std::max_element (array.begin(), array.end());
+}
+
+//==========================================================================================
+template <typename T>
+int BeatTrackingEvaluationToolbox::argMax (std::vector<T> array)
+{
+    return std::distance (array.begin(), std::max_element(array.begin(), array.end()));
+}
+
+//==========================================================================================
+int BeatTrackingEvaluationToolbox::getIndexOfNearestBeat (std::vector<double> beats, double timeInSeconds)
+{
+    if (beats.size() == 0)
+    {
+        // seems there are no beats being evaluated here
+        assert (false);
+    }
+    
+    int minIndex = 0;
+    double minDifference = std::numeric_limits<double>::max();
+    
+    for (int i = 0; i < beats.size(); i++)
+    {
+        double difference = fabs (timeInSeconds - beats[i]);
+        
+        if (difference < minDifference)
+        {
+            minDifference = difference;
+            minIndex = i;
+        }
+    }
+    
+    return minIndex;
 }

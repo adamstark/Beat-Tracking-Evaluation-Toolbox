@@ -14,9 +14,15 @@ int main(int argc, const char * argv[]) {
     std::cout << "Hello, World!\n";
     
     
-    std::vector<float> x = {5.5,6.,6.5,7.,7.5};
-    std::vector<float> y = {5.6,6.55,7.51};
+    std::vector<double> x = {5.5,6.,6.5,7.,7.5};
+    std::vector<double> y = {5.6,6.55,7.51};
     
+    std::vector<double> z;
+    
+    for (int i = 0; i < 120; i++)
+    {
+        z.push_back ((double)i / 2.0);
+    }
     
 //    
 //    
@@ -30,7 +36,8 @@ int main(int argc, const char * argv[]) {
 //    }
 //    
     
-    
+    double result = BeatTrackingEvaluationToolbox::evaluateBeatsGoto (z, z);
+    std::cout << result << std::endl;
     //ContinuityResult result = BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (x, y);
     
     /*

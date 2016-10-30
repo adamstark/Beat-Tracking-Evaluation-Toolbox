@@ -76,7 +76,18 @@ public:
      */
     static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2);
 
-    static double evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations);
+    //================================== Goto Accuracy =====================================
+    /** Calculate the Goto and Muraoka's accuracy value as used in (Goto and Muraoka, 1997).
+     * @param beats sequence of ground truth beat annotations (in seconds)
+     * @param annotations sequence of estimated beat times (in seconds)
+     *
+     * @returns Goto beat tracking accuracy
+     *
+     * References:
+     * ------------
+     * - M. Goto and Y. Muraoka, "Issues in evaluating beat tracking systems," in Working Notes of the IJCAI-97 Workshop on Issues in AI and Music - Evaluation and Assessment, 1997, pp. 9-16.
+     */
+    static double evaluateBeatsGoto (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.35, double mu = 0.2, double sigma = 0.2);
 
     //==========================================================================================
     /** Calculates the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
@@ -118,9 +129,15 @@ private:
     static std::vector<double> getEveryOtherAnnotationStartingAtIndex (std::vector<double> annotations, int startIndex);
     static std::vector<int> getIndicesOfNonZeroElements (std::vector<double> array);
     static std::vector<double> removeIfLessThanValue (std::vector<double> array, double value);
-    static double meanOfVector (std::vector<double> vector);
     static double medianOfVector (std::vector<int> vector);
-
+    static int getIndexOfNearestBeat (std::vector<double> beats, double timeInSeconds);
+    
     template <typename T>
-    static double maxElement (std::vector<T> array);
+    static double meanOfVector (std::vector<T> vector);
+    
+    template <typename T>
+    static T maxElement (std::vector<T> array);
+    
+    template <typename T>
+    static int argMax (std::vector<T> array);
 };
