@@ -689,7 +689,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsInformationGain (std::vector<
     double forwardEntropy = findEntropy (forwardErrorHistogram);
     
     // annotations compared to beats
-    std::vector<double> backwardsError = findBeatError (beats, annotations);
+    std::vector<double> backwardsError = findBeatError (annotations, beats);
     std::vector<double> backwardsErrorHistogram = calculateBeatErrorHistogram (backwardsError, histogramBinCentres);
     double backwardsEntropy = findEntropy (backwardsErrorHistogram);
     

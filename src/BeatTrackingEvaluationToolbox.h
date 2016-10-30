@@ -115,6 +115,17 @@ public:
      */
     static double evaluateBeatsAmlCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04);
     
+    //================================== Information Gain ===============================
+    /** Calculates the information gain as used in (Davies et al, 2010).
+     * @param anns sequence of ground truth beat annotations (in seconds)
+     * @param beats sequence of estimated beat times (in seconds)
+     *
+     * @returns beat tracking information gain
+     *
+     * References:
+     * ------------
+     * - M. E. P. Davies, N. Degara and M. D. Plumbley, "Measuring the performance of beat tracking algorithms algorithms using a beat error histogram,"  accepted to IEE Signal Processing Letters.
+     */
     static double evaluateBeatsInformationGain (std::vector<double> beats, std::vector<double> annotations, int numHistogramBins = 40);
 
 private:
