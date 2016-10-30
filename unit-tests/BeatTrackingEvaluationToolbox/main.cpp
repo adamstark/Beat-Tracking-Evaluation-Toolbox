@@ -15,7 +15,7 @@ int main(int argc, const char * argv[]) {
     
     
     std::vector<double> x = {5.5,6.,6.5,7.,7.5};
-    std::vector<double> y = {5.6,6.55,7.51};
+    std::vector<double> y = {5.6,6.55,7.521};
     
     std::vector<double> z;
     
@@ -24,7 +24,6 @@ int main(int argc, const char * argv[]) {
         z.push_back ((double)i / 2.0);
     }
     
-//    
 //    
 //    std::vector<float> z (3, 0);
 //    x.insert(x.end(),z.begin(),z.end());
@@ -36,9 +35,12 @@ int main(int argc, const char * argv[]) {
 //    }
 //    
     
-    double result = BeatTrackingEvaluationToolbox::evaluateBeatsGoto (z, z);
+    double result = BeatTrackingEvaluationToolbox::evaluateBeatsInformationGain (x, y);
+    //std::vector<double> tmp = BeatTrackingEvaluationToolbox::findBeatError (x, y);
+        
     std::cout << result << std::endl;
-    //ContinuityResult result = BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (x, y);
+    std::cout << "OK!" << std::endl;
+    
     
     /*
     std::cout << result.cmlC << std::endl;

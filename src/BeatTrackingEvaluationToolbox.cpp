@@ -18,6 +18,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
     double fMeasure = evaluateBeatsFMeasure (beats, annotations);
     double pScore = evaluateBeatsPScore (beats, annotations);
     double gotoAccuracy = evaluateBeatsGoto (beats, annotations);
+    double informationGain = evaluateBeatsInformationGain (beats, annotations);
     ContinuityResult continuityResult = evaluateBeatsContinuity (beats, annotations);
 
     results.push_back (cemgilAccuracy);
@@ -25,6 +26,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
     results.push_back (fMeasure);
     results.push_back (pScore);
     results.push_back (gotoAccuracy);
+    results.push_back (informationGain);
     results.push_back (continuityResult.cmlC);
     results.push_back (continuityResult.cmlT);
     results.push_back (continuityResult.amlC);
@@ -56,7 +58,7 @@ ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::ve
     }
 
     // calculate double tempo annotations
-    std::vector<double> doubleTempoAnnotations = createSetOfAnnotationsAtDoubleTempo (annotations);
+    std::vector<double> doubleTempoAnnotations = createSetOfAnnotationsAtdoubleTempo (annotations);
 
     // get off beats
     std::vector<double> offBeatAnnotations = getEveryOtherAnnotationStartingAtIndex (doubleTempoAnnotations, 1);
@@ -316,7 +318,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
         {
             paired[k] = 1;
             
-            double error = (float) beats[beatsInWindow[0]] - annotations[k];
+            double error = (double) beats[beatsInWindow[0]] - annotations[k];
             
             // if negative use pre_interval
             if (error < 0)
@@ -492,7 +494,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsAmlCemgilAccuracy (std::vecto
     }
 
     // calculate double tempo annotations
-    std::vector<double> doubleTempoAnnotations = createSetOfAnnotationsAtDoubleTempo (annotations);
+    std::vector<double> doubleTempoAnnotations = createSetOfAnnotationsAtdoubleTempo (annotations);
 
     // get off beats
     std::vector<double> offBeatAnnotations = getEveryOtherAnnotationStartingAtIndex (doubleTempoAnnotations, 1);
@@ -643,7 +645,182 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
 }
 
 //==========================================================================================
-std::vector<double> BeatTrackingEvaluationToolbox::createSetOfAnnotationsAtDoubleTempo (std::vector<double> annotations)
+double BeatTrackingEvaluationToolbox::evaluateBeatsInformationGain (std::vector<double> beats, std::vector<double> annotations, int numHistogramBins)
+{
+    // remove beats and annotations that are within the first 5 seconds
+    beats = removeIfLessThanValue (beats, 5);
+    annotations = removeIfLessThanValue (annotations, 5);
+    
+    // if there are no beats, score zero
+    if (beats.size() < 2 || annotations.size() < 2)
+        return 0.;
+    
+    // if the beats contain very large values
+    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
+    {
+        // !
+        // looks like the beat times are in samples, not seconds
+        assert (false);
+        
+        return 0.0;
+    }
+    
+    double stepSize = 1. / ((double)numHistogramBins - 1.);
+    double binsStart = -0.5 + 0.5 * stepSize;
+    double binsEnd = 0.5 - 0.5 * stepSize;
+    
+    std::vector<double> histogramBinCentres;
+    
+    histogramBinCentres.push_back (-0.5);
+    
+    double binCentre = binsStart;
+    
+    while (binCentre < binsEnd + stepSize)
+    {
+        histogramBinCentres.push_back (binCentre);
+        binCentre += stepSize;
+    }
+    
+    histogramBinCentres.push_back (0.5);
+    
+    // beats compared to annotations
+    std::vector<double> forwardError = findBeatError (beats, annotations);
+    std::vector<double> forwardErrorHistogram = calculateBeatErrorHistogram (forwardError, histogramBinCentres);
+    double forwardEntropy = findEntropy (forwardErrorHistogram);
+    
+    // annotations compared to beats
+    std::vector<double> backwardsError = findBeatError (beats, annotations);
+    std::vector<double> backwardsErrorHistogram = calculateBeatErrorHistogram (backwardsError, histogramBinCentres);
+    double backwardsEntropy = findEntropy (backwardsErrorHistogram);
+    
+    double maxEntropy;
+    
+    // find higher entropy value (i.e. which is worst)
+    if (forwardEntropy > backwardsEntropy)
+    {
+        maxEntropy = forwardEntropy;
+    }
+    else
+    {
+        maxEntropy = backwardsEntropy;
+    }
+    
+    double informationGain = log2((double)numHistogramBins) - maxEntropy;
+    
+    return informationGain;
+}
+
+//==========================================================================================
+std::vector<double> BeatTrackingEvaluationToolbox::findBeatError (std::vector<double> beats, std::vector<double> annotations)
+{
+    std::vector<double> beatError (beats.size());
+    std::fill (beatError.begin(), beatError.end(), 0.0);
+    
+    // hangover from old code, probably not necessary - these should already be sorted by definition!
+    std::sort (beats.begin(), beats.end());
+    std::sort (annotations.begin(), annotations.end());
+    
+    // calculate relative error for each beat
+    for (int i = 0; i < beats.size(); i++)
+    {
+        int indexOfClosestAnnotation = getIndexOfNearestElement (annotations, beats[i]);
+        double absoluteError = beats[i] - annotations[indexOfClosestAnnotation];
+        
+        double interAnnotationInterval;
+        
+        // if first annotation is nearest or nearest annotation is on after the current beat
+        // then we look at the next inter-annotation interval
+        if (indexOfClosestAnnotation == 0 || absoluteError >= 0)
+        {
+            interAnnotationInterval = 0.5 * (annotations[indexOfClosestAnnotation + 1] - annotations[indexOfClosestAnnotation]);
+        }
+        // otherwise we look at the previous inter-annotation interval
+        else
+        {
+            interAnnotationInterval = 0.5 * (annotations[indexOfClosestAnnotation] - annotations[indexOfClosestAnnotation - 1]);
+        }
+        
+        beatError[i] = 0.5 * absoluteError / interAnnotationInterval;
+        
+        // trick to deal with bin boundaries
+        beatError[i] = round (10000.0 * beatError[i]) / 10000.0;
+    }
+    
+    return beatError;
+}
+
+
+//==========================================================================================
+std::vector<double> BeatTrackingEvaluationToolbox::calculateBeatErrorHistogram (std::vector<double> beatError, std::vector<double> histogramBins)
+{
+    // make sure all beat errors are in the range [-0.5, 0.5]
+    for (int i = 0; i < beatError.size(); i++)
+    {
+        while (beatError[i] < -0.5)
+            beatError[i] += 1.0;
+        
+        while (beatError[i] > 0.5)
+            beatError[i] -= 1.0;
+    }
+    
+    // calculate the histogram bin edges from the centers
+    std::vector<double> histogramBinEdges (histogramBins.size());
+    std::fill (histogramBinEdges.begin(), histogramBinEdges.end(), 0.0);
+    histogramBinEdges[0] = histogramBins[0] - (fabs (histogramBins[0]) - fabs (histogramBins[1]));
+    
+    for (int h = 1; h < histogramBins.size(); h++)
+        histogramBinEdges[h] = (histogramBins[h-1] + histogramBins[h]) / 2.0;
+    
+    // add final histogram bin edge
+    histogramBinEdges.push_back (histogramBinEdges[histogramBinEdges.size() - 1] + (histogramBinEdges[histogramBinEdges.size() - 1] - histogramBinEdges[histogramBinEdges.size() - 2]));
+    
+    std::vector<double> histogram (histogramBins.size());
+    std::fill (histogram.begin(), histogram.end(), 0.0);
+    
+    for (int i = 0; i < histogramBinEdges.size() - 1; i++)
+    {
+        for (int j = 0; j < beatError.size(); j++)
+        {
+            if (beatError[j] >= histogramBinEdges[i] && beatError[j] < histogramBinEdges[i+1])
+            {
+                histogram[i] += 1.;
+            }
+        }
+    }
+    
+    // add the last bin height to the first bin and remove last element
+    histogram[0] = histogram[0] + histogram[histogram.size() - 1];
+    histogram.pop_back();
+    
+    // make the bins heights sum to unity
+    double sumOfHistorgram = std::accumulate (histogram.begin(), histogram.end(), 0.0);
+    for (int i = 0; i < histogram.size(); i++)
+    {
+        histogram[i] = histogram[i] / sumOfHistorgram;
+        
+        // set zero valued binvals to 1, this makes the entropy calculation well-behaved.
+        if (histogram[i] == 0.0)
+            histogram[i] = 1.0;
+    }
+    
+    return histogram;
+}
+
+//==========================================================================================
+double BeatTrackingEvaluationToolbox::findEntropy (std::vector<double> beatErrorHistogram)
+{
+    double sumValue = 0.0;
+    for (int b = 0; b < beatErrorHistogram.size(); b++)
+        sumValue += (beatErrorHistogram[b] * log2(beatErrorHistogram[b]));
+    
+    double entropy = -1.0 * sumValue;
+    
+    return entropy;
+}
+
+
+//==========================================================================================
+std::vector<double> BeatTrackingEvaluationToolbox::createSetOfAnnotationsAtdoubleTempo (std::vector<double> annotations)
 {
     std::vector<double> doubleTempoAnnotations;
 
@@ -747,20 +924,20 @@ int BeatTrackingEvaluationToolbox::argMax (std::vector<T> array)
 }
 
 //==========================================================================================
-int BeatTrackingEvaluationToolbox::getIndexOfNearestBeat (std::vector<double> beats, double timeInSeconds)
+int BeatTrackingEvaluationToolbox::getIndexOfNearestElement (std::vector<double> array, double value)
 {
-    if (beats.size() == 0)
+    if (array.size() == 0)
     {
-        // seems there are no beats being evaluated here
+        // seems there is nothing in the array
         assert (false);
     }
     
     int minIndex = 0;
     double minDifference = std::numeric_limits<double>::max();
     
-    for (int i = 0; i < beats.size(); i++)
+    for (int i = 0; i < array.size(); i++)
     {
-        double difference = fabs (timeInSeconds - beats[i]);
+        double difference = fabs (value - array[i]);
         
         if (difference < minDifference)
         {
@@ -771,3 +948,5 @@ int BeatTrackingEvaluationToolbox::getIndexOfNearestBeat (std::vector<double> be
     
     return minIndex;
 }
+
+

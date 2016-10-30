@@ -655,8 +655,8 @@ def continuityBased(anns,beats):
 # =====================================================================================
 def ContinuityEval(anns,beats,t,p):
         
-    checkanns = np.zeros(max(anns.size,beats.size))
-    checkbeats = np.zeros(max(anns.size,beats.size))
+    checkanns = np.zeros(anns.size)
+    checkbeats = np.zeros(beats.size)
     
     cond = 0.
     

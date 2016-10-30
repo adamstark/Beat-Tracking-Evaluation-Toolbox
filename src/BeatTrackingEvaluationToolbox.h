@@ -114,30 +114,43 @@ public:
      * - "Musicians and Machines: Bridging the Semantic Gap in Live Performance", Adam Stark, PhD Thesis, 2011, Chapter 3
      */
     static double evaluateBeatsAmlCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04);
+    
+    static double evaluateBeatsInformationGain (std::vector<double> beats, std::vector<double> annotations, int numHistogramBins = 40);
 
 private:
+    
+    //==========================================================================================
     struct ContinuityEvaluationScores
     {
         double totalAccuracy = 0.;
         double continuityAccuracy = 0.;
     };
 
+    //==========================================================================================
     static double sumOfCrossCorrelation (std::vector<double> v1, std::vector<double> v2, int maximumLag);
-
     static ContinuityEvaluationScores continutityEvaluation (std::vector<double> beats, std::vector<double> annotations, double phaseThreshold = 0.175, double periodThreshold = 0.175);
-    static std::vector<double> createSetOfAnnotationsAtDoubleTempo (std::vector<double> annotations);
+    static std::vector<double> createSetOfAnnotationsAtdoubleTempo (std::vector<double> annotations);
     static std::vector<double> getEveryOtherAnnotationStartingAtIndex (std::vector<double> annotations, int startIndex);
     static std::vector<int> getIndicesOfNonZeroElements (std::vector<double> array);
     static std::vector<double> removeIfLessThanValue (std::vector<double> array, double value);
     static double medianOfVector (std::vector<int> vector);
-    static int getIndexOfNearestBeat (std::vector<double> beats, double timeInSeconds);
+    static int getIndexOfNearestElement (std::vector<double> array, double value);
     
+    //==========================================================================================
+    // Information Gain methods
+    static std::vector<double> findBeatError (std::vector<double> beats, std::vector<double> annotations);
+    static std::vector<double> calculateBeatErrorHistogram (std::vector<double> beatError, std::vector<double> histogramBins);
+    static double findEntropy (std::vector<double> beatErrorHistogram);
+    
+    //==========================================================================================
     template <typename T>
     static double meanOfVector (std::vector<T> vector);
     
+    //==========================================================================================
     template <typename T>
     static T maxElement (std::vector<T> array);
     
+    //==========================================================================================
     template <typename T>
     static int argMax (std::vector<T> array);
 };
