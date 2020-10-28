@@ -44,6 +44,16 @@ struct ContinuityResult
 
 //==========================================================================================
 /** */
+struct FMeasureResult
+{
+    double fMeasure = 0.;
+    double precision = 0.;
+    double recall = 0.;
+    double accuracy = 0.;
+};
+
+//==========================================================================================
+/** */
 class BeatTrackingEvaluationToolbox
 {
 public:
@@ -78,8 +88,10 @@ public:
     /** Calculates the F-Measure as used in (Dixon, 2006) and (Dixon, 2007).
      * @param beats sequence of estimated beat times (in seconds)
      * @param annotations sequence of ground truth beat annotations (in seconds)
+     * @param toleranceWindowInSeconds tolerance window in seconds either side of a beat that determines a correct detection
+     * @param earliestBeatTimeToConsiderInSeconds only beat times after this time will be considered for evaluation
      *
-     * @Returns the F-Measure score for the beat sequence given the annotations
+     * @Returns a struct containing F-Measure score for the beat sequence given the annotations and related measures
      *
      * References:
      * ------------
@@ -87,7 +99,7 @@ public:
      * - S. Dixon, "Onset detection revisited," in Proceedings of 9th International Conference on Digital Audio Effects (DAFx), Montreal, Canada, pp. 133-137, 2006.
      * - S. Dixon, "Evaluation of audio beat tracking system beatroot," Journal of New Music Research, vol. 36, no. 1, pp. 39-51, 2007.
      */
-    static double evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07);
+    static FMeasureResult evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07, double earliestBeatTimeToConsiderInSeconds = 0.);
 
     //==========================================================================================
     /** Calculate the PScore accuracy value as used in McKinney et al, 2007.

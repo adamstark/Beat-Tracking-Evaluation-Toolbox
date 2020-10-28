@@ -35,7 +35,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
 
     double cemgilAccuracy = evaluateBeatsCemgilAccuracy (beats, annotations);
     double amlCemgilAccuracy = evaluateBeatsAmlCemgilAccuracy (beats, annotations);
-    double fMeasure = evaluateBeatsFMeasure (beats, annotations);
+    FMeasureResult fMeasureResult = evaluateBeatsFMeasure (beats, annotations);
     double pScore = evaluateBeatsPScore (beats, annotations);
     double gotoAccuracy = evaluateBeatsGoto (beats, annotations);
     double informationGain = evaluateBeatsInformationGain (beats, annotations);
@@ -43,7 +43,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
 
     results.push_back (cemgilAccuracy);
     results.push_back (amlCemgilAccuracy);
-    results.push_back (fMeasure);
+    results.push_back (fMeasureResult.fMeasure);
     results.push_back (pScore);
     results.push_back (gotoAccuracy);
     results.push_back (informationGain);
@@ -123,29 +123,26 @@ ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::ve
 }
 
 //==========================================================================================
-double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds)
+FMeasureResult BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds, double earliestBeatTimeToConsiderInSeconds)
 {
-    // remove beats and annotations that are within the first 5 seconds
-    beats = removeIfLessThanValue (beats, 5);
-    annotations = removeIfLessThanValue (annotations, 5);
+    FMeasureResult result;
+    
+    // if earliestBeatTimeToConsiderInSeconds > 0, remove beats and annotations before that time
+    if (earliestBeatTimeToConsiderInSeconds > 0.)
+    {
+        beats = removeIfLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+        annotations = removeIfLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
+    }
 
     // if there are no beats, score zero
     if (beats.size() == 0)
-        return 0.0;
-
-    // if the beats contain very large values
-    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
-    {
-        // !
-        // looks like the beat times are in samples, not seconds
-        assert (false);
-    }
+        return result;
 
     double numFalsePositives = 0;
     double numFalseNegatives = 0;
     double numCorrectDetections = 0;
 
-    std::vector<double> beatUnused (beats.size(), 1);
+    std::vector<int> beatUnused (beats.size(), 1);
 
     for (auto& annotation : annotations)
     {
@@ -172,7 +169,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
         else if (beatsInToleranceWindow.size() > 1)
         {
             numCorrectDetections += 1;
-            numFalsePositives += 1;
+            numFalsePositives += (beatsInToleranceWindow.size() - 1);
         }
         // only one beat in the tolerance window therefore a correct detection
         else
@@ -185,37 +182,22 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector<double>
     numFalsePositives += std::accumulate (beatUnused.begin(), beatUnused.end(), 0);
 
     // calculate precision
-    double precision = 0;
-
     if ((numCorrectDetections + numFalsePositives) > 0)
-    {
-        precision = 100. * (numCorrectDetections / (numCorrectDetections + numFalsePositives));
-    }
+        result.precision = 100. * (numCorrectDetections / (numCorrectDetections + numFalsePositives));
 
     // calculate recall
-    double recall = 0;
     if ((numCorrectDetections + numFalseNegatives) > 0)
-    {
-        recall = 100. * (numCorrectDetections / (numCorrectDetections + numFalseNegatives));
-    }
+        result.recall = 100. * (numCorrectDetections / (numCorrectDetections + numFalseNegatives));
 
     // now calculate the f-measure
-    double fMeasure = 0;
-
-    if ((precision + recall) > 0)
-    {
-        fMeasure = (2.0 * precision * recall) / (precision + recall);
-    }
+    if ((result.precision + result.recall) > 0)
+        result.fMeasure = (2.0 * result.precision * result.recall) / (result.precision + result.recall);
 
     // this is Dixon's related accuracy measure from (Dixon, 2001)
-    double accuracy = 0;
-
     if ((numCorrectDetections + numFalsePositives + numFalseNegatives) > 0)
-    {
-        accuracy = 100.0 * numCorrectDetections / (numCorrectDetections + numFalsePositives + numFalseNegatives);
-    }
+        result.accuracy = 100.0 * numCorrectDetections / (numCorrectDetections + numFalsePositives + numFalseNegatives);
 
-    return fMeasure;
+    return result;
 }
 
 //==========================================================================================
