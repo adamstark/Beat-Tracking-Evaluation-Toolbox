@@ -134,8 +134,8 @@ FMeasureResult BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector
         annotations = removeIfLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
     }
 
-    // if there are no beats, score zero
-    if (beats.size() == 0)
+    // if there are no beats or annotations, score zero
+    if (beats.size() == 0 || annotations.size() == 0)
         return result;
 
     double numFalsePositives = 0;
@@ -430,45 +430,41 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
 }
 
 //==========================================================================================
-double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma)
+double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma, double earliestBeatTimeToConsiderInSeconds)
 {
-    // remove beats and annotations that are within the first 5 seconds
-    beats = removeIfLessThanValue (beats, 5);
-    annotations = removeIfLessThanValue (annotations, 5);
-
-    // if there are no beats, score zero
-    if (beats.size() == 0)
-        return 0.0;
-
-    // if the beats contain very large values
-    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
+    // if earliestBeatTimeToConsiderInSeconds > 0, remove beats and annotations before that time
+    if (earliestBeatTimeToConsiderInSeconds > 0.)
     {
-        // !
-        // looks like the beat times are in samples, not seconds
-        assert (false);
+        beats = removeIfLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+        annotations = removeIfLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
     }
 
-    double cemgilAccuracy = 0.f;
+    // if there are no beats or annotations, score zero
+    if (beats.size() == 0 || annotations.size() == 0)
+        return 0.0;
 
-    for (auto& annotation : annotations)
+    double cemgilAccuracy = 0.f;
+    double twoSigmaSquared = 2. * sigma * sigma;
+
+    for (int i = 0; i < annotations.size(); i++)
     {
         // calculate the time to the nearest beat
         double timeToNearestBeat = std::numeric_limits<double>::max();
 
-        for (auto& beat : beats)
+        for (int k = 0; k < beats.size(); k++)
         {
-            double timeDifference = fabs (beat - annotation);
-
+            double timeDifference = fabs (beats[k] - annotations[i]);
+            
             if (timeDifference < timeToNearestBeat)
                 timeToNearestBeat = timeDifference;
         }
 
         // sum the outputs of the Gaussian error function
-        cemgilAccuracy += exp (-(timeToNearestBeat * timeToNearestBeat) / (2. * (sigma * sigma)));
+        cemgilAccuracy += exp (-(timeToNearestBeat * timeToNearestBeat) / twoSigmaSquared);;
     }
 
     // normalise by the mean of the number of annotations and beats
-    cemgilAccuracy = cemgilAccuracy / (0.5 * ((double)beats.size() + (double)annotations.size()));
+    cemgilAccuracy = cemgilAccuracy / (0.5 * static_cast<double> (beats.size() + annotations.size()));
 
     // put into the range 0 to 100%
     cemgilAccuracy *= 100.f;

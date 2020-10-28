@@ -4,6 +4,7 @@ include_directories (${BeatTrackingEvaluationToolbox_SOURCE_DIR}/src)
 add_executable (Tests 
     main.cpp 
     Test_FMeasure.cpp
+    Test_CemgilAccuracy.cpp
     )
 
 target_link_libraries (Tests BeatTrackingEvaluationToolbox)

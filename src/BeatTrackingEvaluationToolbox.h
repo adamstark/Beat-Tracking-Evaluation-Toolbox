@@ -91,7 +91,7 @@ public:
      * @param toleranceWindowInSeconds tolerance window in seconds either side of a beat that determines a correct detection
      * @param earliestBeatTimeToConsiderInSeconds only beat times after this time will be considered for evaluation
      *
-     * @Returns a struct containing F-Measure score for the beat sequence given the annotations and related measures
+     * @Returns a struct containing the F-Measure score for the beat sequence given the annotations and related measures
      *
      * References:
      * ------------
@@ -131,6 +131,8 @@ public:
     /** Calculates the Cemgil et al's accuracy value as used in (Cemgil et al, 2001).
      * @param beats sequence of estimated beat times (in seconds)
      * @param annotations sequence of ground truth beat annotations (in seconds)
+     * @param sigma the time in seconds used to calculate the Gaussian error function
+     * @param earliestBeatTimeToConsiderInSeconds only beat times after this time will be considered for evaluation
      *
      * @Returns the beat tracking accuracy
      *
@@ -138,7 +140,7 @@ public:
      * -----------
      * - A. T. Cemgil, B. Kappen, P. Desain, and H. Honing, "On tempo tracking: Tempogram representation and Kalman filtering," Journal Of New Music Research, vol. 28, no. 4, pp. 259-273, 2001
      */
-    static double evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04);
+    static double evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04, double earliestBeatTimeToConsiderInSeconds = 0.);
 
     //==========================================================================================
     /** Calculates Cemgil accuracy but allowing for continuity-based allowed metrical levels

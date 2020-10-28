@@ -1,26 +1,11 @@
 
 #include "doctest.h"
+#include "TestHelpers.h"
 #include <BeatTrackingEvaluationToolbox.h>
 
 //=============================================================
 TEST_SUITE ("FMeasure")
 {
-    //------------------------------------------------------------
-    double randomPositiveOrNegativeOffset (double minValue, double maxValue)
-    {
-        // generate random number in the range [0, 1]
-        double r = (static_cast<double> (rand() % 1000) / 1000.);
-        double range = maxValue - minValue;
-        double value = minValue + r * range;
-        
-        int sign = rand() % 2;
-        
-        // make negative if sign == 1
-        value = sign == 0 ? value : -1. * value;
-        
-        return value;
-    }
-    
     //------------------------------------------------------------
     TEST_CASE ("Identical Sequences")
     {
