@@ -905,11 +905,11 @@ def fMeasure(anns,beats):
             if (beats[j] >= windowMin) and (beats[j] <= windowMax):
                 beatstoadd.append(j)
         
-
-        # now remove these beats so it can't be counted again
         for k in range(len(beatstoadd)):
             beatsinwindow.append(beatstoadd[k])
-            beats = np.delete(beats,beatstoadd[k])
+            
+        # now remove these beats so it can't be counted again
+        beats = np.delete(beats,beatstoadd)
 
         if (len(beatsinwindow) == 0):      # no beats in window, therefore it's a false negative
             fn = fn +1;
