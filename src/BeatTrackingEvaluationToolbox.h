@@ -82,7 +82,7 @@ public:
      *  - S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
      *  - A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
      */
-    static ContinuityResult evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations);
+    static ContinuityResult evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations, double earliestBeatTimeToConsiderInSeconds = 0.);
 
     //==========================================================================================
     /** Calculates the F-Measure as used in (Dixon, 2006) and (Dixon, 2007).
@@ -112,7 +112,7 @@ public:
      * ------------
      * - M. F. McKinney, D. Moelants, M. E. P. Davies, and A. Klapuri, "Evaluation of audio beat tracking and music tempo extraction algorithms," Journal of New Music Research, vol. 36, no. 1, pp. 1-16, 2007.
      */
-    static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2);
+    static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2, double earliestBeatTimeToConsiderInSeconds = 0.);
 
     //================================== Goto Accuracy =====================================
     /** Calculate the Goto and Muraoka's accuracy value as used in (Goto and Muraoka, 1997).
@@ -168,6 +168,8 @@ public:
      */
     static double evaluateBeatsInformationGain (std::vector<double> beats, std::vector<double> annotations, int numHistogramBins = 40);
 
+    static void removeElementsLessThanValue (std::vector<double>& array, double value);
+    
 private:
     
     //==========================================================================================
@@ -184,6 +186,7 @@ private:
     static std::vector<double> getEveryOtherAnnotationStartingAtIndex (std::vector<double> annotations, int startIndex);
     static std::vector<int> getIndicesOfNonZeroElements (std::vector<double> array);
     static std::vector<double> removeIfLessThanValue (std::vector<double> array, double value);
+    //static void removeElementsLessThanValue (std::vector<double>& array, double value);
     static double medianOfVector (std::vector<int> vector);
     static int getIndexOfNearestElement (std::vector<double> array, double value);
     

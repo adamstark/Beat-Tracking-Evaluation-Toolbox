@@ -56,26 +56,16 @@ std::vector<double> BeatTrackingEvaluationToolbox::evaluate (std::vector<double>
 }
 
 //==========================================================================================
-ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations)
+ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations, double earliestBeatTimeToConsiderInSeconds)
 {
-    // remove beats and annotations that are within the first 5 seconds
-    beats = removeIfLessThanValue (beats, 5);
-    annotations = removeIfLessThanValue (annotations, 5);
+    ContinuityResult result;
+    
+    removeElementsLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+    removeElementsLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
 
-    // if there are no beats, score zero
-    if (beats.size() == 0)
-    {
-        ContinuityResult result;
-
+    // if there are no beats or annotations, score zero
+    if (beats.size() == 0 || annotations.size() == 0)
         return result;
-    }
-    // if the beats contain very large values
-    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
-    {
-        // !
-        // looks like the beat times are in samples, not seconds
-        assert (false);
-    }
 
     // calculate double tempo annotations
     std::vector<double> doubleTempoAnnotations = createSetOfAnnotationsAtdoubleTempo (annotations);
@@ -112,8 +102,6 @@ ContinuityResult BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (std::ve
     totalScores.push_back (halfTempoEvenBeatsAnnotationScores.totalAccuracy);
     continuityScores.push_back (halfTempoEvenBeatsAnnotationScores.continuityAccuracy);
 
-    ContinuityResult result;
-
     result.cmlC = normalAnnotationScores.continuityAccuracy;
     result.cmlT = normalAnnotationScores.totalAccuracy;
     result.amlC = maxElement (continuityScores);
@@ -127,17 +115,14 @@ FMeasureResult BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector
 {
     FMeasureResult result;
     
-    // if earliestBeatTimeToConsiderInSeconds > 0, remove beats and annotations before that time
-    if (earliestBeatTimeToConsiderInSeconds > 0.)
-    {
-        beats = removeIfLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
-        annotations = removeIfLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
-    }
+    removeElementsLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+    removeElementsLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
 
     // if there are no beats or annotations, score zero
     if (beats.size() == 0 || annotations.size() == 0)
         return result;
 
+    
     double numFalsePositives = 0;
     double numFalseNegatives = 0;
     double numCorrectDetections = 0;
@@ -201,23 +186,14 @@ FMeasureResult BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (std::vector
 }
 
 //==========================================================================================
-double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold)
+double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold, double earliestBeatTimeToConsiderInSeconds)
 {
-    // remove beats and annotations that are within the first 5 seconds
-    beats = removeIfLessThanValue (beats, 5);
-    annotations = removeIfLessThanValue (annotations, 5);
+    removeElementsLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+    removeElementsLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
 
-    // if there are no beats, score zero
-    if (beats.size() == 0)
+    // if there are no beats or annotations, score zero
+    if (beats.size() == 0 || annotations.size() == 0)
         return 0.0;
-
-    // if the beats contain very large values
-    if (maxElement (beats) > 10000. || maxElement (annotations) > 10000.)
-    {
-        // !
-        // looks like the beat times are in samples, not seconds
-        assert (false);
-    }
 
     // 10 ms resolution
     double pulseTrainSamplingFrequency = 100;
@@ -245,9 +221,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsPScore (std::vector<double> b
     std::vector<int> differenceBetweenIndices;
 
     for (int i = 1; i < indicesOfNonZeroElements.size(); i++)
-    {
         differenceBetweenIndices.push_back (indicesOfNonZeroElements[i] - indicesOfNonZeroElements[i - 1]);
-    }
 
     int maximumLag = (int)round (threshold * medianOfVector (differenceBetweenIndices));
 
@@ -432,12 +406,8 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
 //==========================================================================================
 double BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma, double earliestBeatTimeToConsiderInSeconds)
 {
-    // if earliestBeatTimeToConsiderInSeconds > 0, remove beats and annotations before that time
-    if (earliestBeatTimeToConsiderInSeconds > 0.)
-    {
-        beats = removeIfLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
-        annotations = removeIfLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
-    }
+    removeElementsLessThanValue (beats, earliestBeatTimeToConsiderInSeconds);
+    removeElementsLessThanValue (annotations, earliestBeatTimeToConsiderInSeconds);
 
     // if there are no beats or annotations, score zero
     if (beats.size() == 0 || annotations.size() == 0)
@@ -558,7 +528,7 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
 {
     std::vector<bool> annotationUsed (annotations.size(), false);
     std::vector<bool> beatsCorrect (beats.size(), false);
-
+    
     for (int i = 0; i < beats.size(); i++)
     {
         bool beatCorrect = false;
@@ -577,7 +547,7 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
                 indexOfNearestAnnotation = j;
             }
         }
-
+        
         // if we've already used this annotation for another beat
         if (annotationUsed[indexOfNearestAnnotation])
         {
@@ -585,24 +555,27 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
         }
         else
         {
-            double proportionOfTimeToAnnotationGivenInterAnnotationInterval;
-            double proportionalDifferenceOfInterBeatIntervals;
-
-            // If either first beat or first annotation, look forward on both
+            double interAnnotationInterval;
+            double interBeatInterval;
+            
+            // If either first beat or first annotation, calculate intervals by looking forward on both
             if (i == 0 || indexOfNearestAnnotation == 0)
             {
-                proportionOfTimeToAnnotationGivenInterAnnotationInterval = fabs (timeToNearestAnnotation / (annotations[indexOfNearestAnnotation + 1] - annotations[indexOfNearestAnnotation]));
-
-                proportionalDifferenceOfInterBeatIntervals = fabs (1. - ((beats[i + 1] - beats[i]) / (annotations[indexOfNearestAnnotation + 1] - annotations[indexOfNearestAnnotation])));
+                interAnnotationInterval = annotations[indexOfNearestAnnotation + 1] - annotations[indexOfNearestAnnotation];
+                interBeatInterval = beats[i + 1] - beats[i];
             }
             else // not first beat so we can look backwards
             {
-                proportionOfTimeToAnnotationGivenInterAnnotationInterval = fabs (timeToNearestAnnotation / (annotations[indexOfNearestAnnotation] - annotations[indexOfNearestAnnotation - 1]));
-
-                proportionalDifferenceOfInterBeatIntervals = fabs (1. - ((beats[i] - beats[i - 1]) / (annotations[indexOfNearestAnnotation] - annotations[indexOfNearestAnnotation - 1])));
+                interAnnotationInterval = annotations[indexOfNearestAnnotation] - annotations[indexOfNearestAnnotation - 1];
+                interBeatInterval = beats[i] - beats[i - 1];
             }
 
-            if (proportionOfTimeToAnnotationGivenInterAnnotationInterval < phaseThreshold && proportionalDifferenceOfInterBeatIntervals < periodThreshold)
+            double proportionalDifferenceOfIntervals = fabs (1. - (interBeatInterval / interAnnotationInterval));
+            
+            bool phaseCondition = timeToNearestAnnotation < (phaseThreshold * interAnnotationInterval);
+            bool periodCondition = proportionalDifferenceOfIntervals < periodThreshold;
+
+            if (phaseCondition && periodCondition)
             {
                 annotationUsed[indexOfNearestAnnotation] = true;
                 beatCorrect = true;
@@ -615,6 +588,7 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
     std::vector<int> lengthsOfContinuouslyCorrectlyTrackedBeats;
     int counter = 0;
 
+    // count and store the various lengths of continuously tracked beats
     for (bool beatWasCorrect : beatsCorrect)
     {
         if (beatWasCorrect)
@@ -628,16 +602,29 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
         }
     }
 
-    // in case every beat was correct, append the last value of the count
+    // in case every beat was correct or we had a long sequence
+    // that never had a bad beat before the end of the detections,
+    // append the last value of the count
     lengthsOfContinuouslyCorrectlyTrackedBeats.push_back (counter);
 
-    double numCorrectBeats = std::accumulate (beatsCorrect.begin(), beatsCorrect.end(), 0);
+    int numCorrectBeats = std::accumulate (beatsCorrect.begin(), beatsCorrect.end(), 0);
+    int longestContinuouslyCorrectSegment  = maxElement (lengthsOfContinuouslyCorrectlyTrackedBeats);
 
-    double longestTrackedSegment = (double)maxElement (lengthsOfContinuouslyCorrectlyTrackedBeats);
-
+    // --------------------------------------------------
+    // I'm a bit confused about what the divisor should be in the final calculation....
+    
+    // 1. approach taken in MADMOM and it seems sensible
+    double divisor = static_cast<double> (std::max (annotations.size(), beats.size()));
+    
+    // 2. approach taken in old Python code (probably wrong)
+    // double divisor = static_cast<double> (beats.size());
+    
+    // 3. approach set out in the technical report
+    // double divisor = static_cast<double> (annotations.size());
+    
     ContinuityEvaluationScores scores;
-    scores.totalAccuracy = 100. * (numCorrectBeats / (double)beatsCorrect.size());
-    scores.continuityAccuracy = 100. * (longestTrackedSegment / (double)beatsCorrect.size());
+    scores.continuityAccuracy = 100. * (static_cast<double> (longestContinuouslyCorrectSegment) / divisor);
+    scores.totalAccuracy = 100. * (static_cast<double> (numCorrectBeats) / divisor);
 
     return scores;
 }
@@ -841,9 +828,7 @@ std::vector<double> BeatTrackingEvaluationToolbox::getEveryOtherAnnotationStarti
     std::vector<double> newAnnotations;
 
     for (int i = startIndex; i < annotations.size(); i += 2)
-    {
         newAnnotations.push_back (annotations[i]);
-    }
 
     return newAnnotations;
 }
@@ -860,6 +845,12 @@ std::vector<double> BeatTrackingEvaluationToolbox::removeIfLessThanValue (std::v
     }
 
     return result;
+}
+
+//==========================================================================================
+void BeatTrackingEvaluationToolbox::removeElementsLessThanValue (std::vector<double>& array, double threshold)
+{
+    array.erase (std::remove_if (array.begin(), array.end(), [threshold](double v) -> bool { return v < threshold; }), array.end());
 }
 
 //==========================================================================================

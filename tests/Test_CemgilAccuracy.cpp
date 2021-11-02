@@ -1,11 +1,43 @@
 
 #include "doctest.h"
 #include "TestHelpers.h"
+#include "TestSignals.h"
 #include <BeatTrackingEvaluationToolbox.h>
 
 //=============================================================
 TEST_SUITE ("Cemgil Accuracy")
 {
+    //------------------------------------------------------------
+    TEST_CASE ("Both Empty Sequences")
+    {
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), std::vector<double>());
+        CHECK_EQ (result, 0.0);
+    }
+    
+    //------------------------------------------------------------
+    TEST_CASE ("Empty Beat Sequence")
+    {
+        std::vector<double> annotations;
+        
+        for (int i = 1; i <= 360; i++)
+            annotations.push_back (i / 2.);
+        
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), annotations);
+        CHECK_EQ (result, 0.0);
+    }
+    
+    //------------------------------------------------------------
+    TEST_CASE ("Empty Annotation Sequence")
+    {
+        std::vector<double> beats;
+        
+        for (int i = 1; i <= 360; i++)
+            beats.push_back (i / 2.);
+        
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, std::vector<double>());
+        CHECK_EQ (result, 0.0);
+    }
+    
     //------------------------------------------------------------
     TEST_CASE ("Identical Sequences")
     {
@@ -152,4 +184,20 @@ TEST_SUITE ("Cemgil Accuracy")
         
         CHECK (result == doctest::Approx (66.66666667).epsilon (0.0001));
     }
+    
+    //------------------------------------------------------------
+    TEST_CASE ("Sample Sequence 1 - Compare to MADMOM")
+    {
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats1, examples::annotations1);
+        CHECK (result == doctest::Approx (85.82089134179277).epsilon (0.0001));
+    }
+    
+    //------------------------------------------------------------
+    TEST_CASE ("Sample Sequence 2 - Compare to MADMOM")
+    {
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats2, examples::annotations2);
+        CHECK (result == doctest::Approx (70.2781695147737).epsilon (0.0001));
+    }
+    
+    
 }
