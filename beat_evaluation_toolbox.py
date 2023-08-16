@@ -681,7 +681,7 @@ def ContinuityEval(anns,beats,t,p):
          
                         
         # for i^th beat what is the condition
-        checkbeats[i] = np.float(cond)
+        checkbeats[i] = float(cond)
     
     counts = [] # to hold length of continuously correct segments
     ct=0 # counter
@@ -696,8 +696,8 @@ def ContinuityEval(anns,beats,t,p):
     # in case every beat was correct, append the last value of the count
     counts.append(ct)
                 
-    totAcc = 100.0*(np.sum(checkbeats)/np.float(checkbeats.size));
-    contAcc = 100.0*(np.float(max(counts))/np.float(checkbeats.size));
+    totAcc = 100.0*(np.sum(checkbeats)/float(checkbeats.size));
+    contAcc = 100.0*(float(max(counts))/float(checkbeats.size));
     return [totAcc,contAcc]
 
 
@@ -754,7 +754,7 @@ def cemgilAcc(anns,beats):
         a = a + np.exp(-np.power(beatDiff,2.0) / (2.0*np.power(sigma,2.0)))
 
     # normalise by the mean of the number of annotations and beats
-    a = a/(0.5*(np.float(beats.size) + np.float(anns.size)))
+    a = a/(0.5*(float(beats.size) + float(anns.size)))
 
     # put into the range 0 to 100%
     a = a*100.0;
@@ -926,27 +926,27 @@ def fMeasure(anns,beats):
                 
     # calculate precision, p
     if ((hits+fp) > 0):
-        p = 100*(np.float(hits)/np.float(hits+fp))
+        p = 100*(float(hits)/float(hits+fp))
     else:
         p = 0
 
 
     # calculate recall, r
     if ((hits+fn) > 0):
-        r = 100*(np.float(hits)/np.float(hits+fn))
+        r = 100*(float(hits)/float(hits+fn))
     else:
         r = 0
 
     # now calculate the f-measure
     if ((p+r) > 0):
-        f = 2.0*np.float(p)*np.float(r)/np.float(p+r)
+        f = 2.0*float(p)*float(r)/float(p+r)
     else:
         f = 0
 
 
     # this is Dixon's related accuracy measure from (Dixon, 2001)
     if ((hits+fp+fn) > 0):
-        a = 100.0*np.float(hits)/np.float(hits+fp+fn)
+        a = 100.0*float(hits)/float(hits+fp+fn)
     else:
         a = 0
 
@@ -998,25 +998,25 @@ def pScore(anns,beats):
     # quantize beats to 10ms resolution
     fs = 100
 
-    endPoint = np.int(np.ceil(max(anns.max(),beats.max())))
+    endPoint = int(np.ceil(max(anns.max(),beats.max())))
 
     # make impulse trains from beat times, take those beats only greater than 5 seconds
     annsTrain = np.zeros(endPoint*fs)
     beatsTrain = np.zeros(endPoint*fs)
 
     for i in range(anns.size):
-        index = np.int(np.ceil(anns[i]*fs))-1
+        index = int(np.ceil(anns[i]*fs))-1
         annsTrain[index] = 1.0
 
 
     for i in range(beats.size):
-        index = np.int(np.ceil(beats[i]*fs))-1
+        index = int(np.ceil(beats[i]*fs))-1
         beatsTrain[index] = 1.0
 
     
     W = np.round(thresh*np.median(np.diff(np.nonzero(annsTrain)[0])))
             
-    W = np.int(W)
+    W = int(W)
 
     p = be_xcorr(beatsTrain,annsTrain,W).sum() /   max(np.nonzero(beatsTrain)[0].size,np.nonzero(annsTrain)[0].size)
     
@@ -1137,12 +1137,12 @@ def gotoAcc(anns,beats):
             # it's paired beat, so measure beat error
             paired[k] = 1
 
-            newError = np.float(beats[a1[0]] - anns[k])
+            newError = float(beats[a1[0]] - anns[k])
 
             if (newError<0): # if negative use pre_interval
-                beatError[k] = np.float(newError)/np.float(preInterval)
+                beatError[k] = float(newError)/float(preInterval)
             else: # else positive so use subsequent inter annotation interval
-                beatError[k] = np.float(newError)/np.float(postInterval)
+                beatError[k] = float(newError)/float(postInterval)
 
 
     b1 = np.where(np.abs(beatError) > thresh)[0]
@@ -1211,7 +1211,7 @@ def informationGain(anns,beats):
         print ("beat or annotation sequence is empty or too short, assigning zero to information gain [D] and a uniform beat error histogram")
         I = 0
         # slight stretch here, to get totally uniform, use non-integer bin heights
-        binVals = np.zeros(numBins) + np.float(anns.size)/np.float(numBins)
+        binVals = np.zeros(numBins) + float(anns.size)/float(numBins)
         return [I,binVals]
 
 
@@ -1220,12 +1220,12 @@ def informationGain(anns,beats):
         print ("either beats or annotations are not in seconds, please rectify.")
         I = 0
         # slight stretch here, to get totally uniform, use non-integer bin heights
-        binVals = np.zeros(numBins) + np.float(anns.size)/np.float(numBins)
+        binVals = np.zeros(numBins) + float(anns.size)/float(numBins)
         return [I,binVals]
 
-    b_start = (-0.5+0.5*(1./(np.float(numBins)-1.)))
-    b_end = (0.5-0.5*(1./(np.float(numBins)-1.)))
-    b_step = 1./(np.float(numBins)-1.)
+    b_start = (-0.5+0.5*(1./(float(numBins)-1.)))
+    b_end = (0.5-0.5*(1./(float(numBins)-1.)))
+    b_step = 1./(float(numBins)-1.)
 
     histBins = np.arange(b_start,b_end+b_step,b_step)
     histBins = np.append(histBins,0.5)
@@ -1250,7 +1250,7 @@ def informationGain(anns,beats):
     
     histBins = histBins[0:histBins.size-1]
 
-    I = np.log2(np.float(numBins)) - maxEntropy
+    I = np.log2(float(numBins)) - maxEntropy
 
     return [I,binVals]
 
@@ -1342,7 +1342,7 @@ def FindEntropy(beatError,histBins):
     binVals = rawBinVals;
     
     # convert array from int to float
-    binVals = binVals.astype(np.float)
+    binVals = binVals.astype(float)
     
     # make sure the bins heights sum to unity
     binVals = binVals/binVals.sum()
@@ -1397,7 +1397,7 @@ def confidenceIntervals(scores):
     
     for sample in range(numSamples):
         # get random sampling from scores
-        randomSamples = np.ceil(np.random.random(numScores)*np.float(numScores))-1
+        randomSamples = np.ceil(np.random.random(numScores)*float(numScores))-1
         randomSamples.sort()
         
         tmp = np.zeros(randomSamples.size)        
