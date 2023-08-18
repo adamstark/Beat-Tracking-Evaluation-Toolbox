@@ -5,21 +5,7 @@
 
 //=============================================================
 TEST_SUITE ("PScore")
-{
-    //------------------------------------------------------------
-    TEST_CASE ("DELETE THIS LATER")
-    {
-        std::vector<double> v;
-        
-        for (int i = -100; i < 100; i++)
-            v.push_back (static_cast<double> (i));
-        
-        BeatTrackingEvaluationToolbox::removeElementsLessThanValue (v, 0.);
-        
-        for (int i = 0; i < v.size(); i++)
-            CHECK (v[i] >= 0.);
-    }
-    
+{    
     //------------------------------------------------------------
     TEST_CASE ("Both Empty Sequences")
     {

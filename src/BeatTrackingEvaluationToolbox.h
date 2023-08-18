@@ -82,7 +82,7 @@ public:
      *  - S. Hainsworth, "Techniques for the automated analysis of musical audio," Ph.D. dissertation, Department of Engineering, Cambridge University, 2004.
      *  - A. P. Klapuri, A. Eronen, and J. Astola, "Analysis of the meter of acoustic musical signals," IEEE Transactions on Audio, Speech and Language Processing, vol. 14, no. 1, pp. 342-355, 2006.
      */
-    static ContinuityResult evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations, double earliestBeatTimeToConsiderInSeconds = 0.);
+    static ContinuityResult evaluateBeatsContinuity (std::vector<double> beats, std::vector<double> annotations, double earliestBeatTimeToConsiderInSeconds = 5.);
 
     //==========================================================================================
     /** Calculates the F-Measure as used in (Dixon, 2006) and (Dixon, 2007).
@@ -99,7 +99,7 @@ public:
      * - S. Dixon, "Onset detection revisited," in Proceedings of 9th International Conference on Digital Audio Effects (DAFx), Montreal, Canada, pp. 133-137, 2006.
      * - S. Dixon, "Evaluation of audio beat tracking system beatroot," Journal of New Music Research, vol. 36, no. 1, pp. 39-51, 2007.
      */
-    static FMeasureResult evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07, double earliestBeatTimeToConsiderInSeconds = 0.);
+    static FMeasureResult evaluateBeatsFMeasure (std::vector<double> beats, std::vector<double> annotations, double toleranceWindowInSeconds = 0.07, double earliestBeatTimeToConsiderInSeconds = 5.);
 
     //==========================================================================================
     /** Calculate the PScore accuracy value as used in McKinney et al, 2007.
@@ -112,7 +112,7 @@ public:
      * ------------
      * - M. F. McKinney, D. Moelants, M. E. P. Davies, and A. Klapuri, "Evaluation of audio beat tracking and music tempo extraction algorithms," Journal of New Music Research, vol. 36, no. 1, pp. 1-16, 2007.
      */
-    static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2, double earliestBeatTimeToConsiderInSeconds = 0.);
+    static double evaluateBeatsPScore (std::vector<double> beats, std::vector<double> annotations, double threshold = 0.2, double earliestBeatTimeToConsiderInSeconds = 5.);
 
     //================================== Goto Accuracy =====================================
     /** Calculate the Goto and Muraoka's accuracy value as used in (Goto and Muraoka, 1997).
@@ -140,7 +140,7 @@ public:
      * -----------
      * - A. T. Cemgil, B. Kappen, P. Desain, and H. Honing, "On tempo tracking: Tempogram representation and Kalman filtering," Journal Of New Music Research, vol. 28, no. 4, pp. 259-273, 2001
      */
-    static double evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04, double earliestBeatTimeToConsiderInSeconds = 0.);
+    static double evaluateBeatsCemgilAccuracy (std::vector<double> beats, std::vector<double> annotations, double sigma = 0.04, double earliestBeatTimeToConsiderInSeconds = 5.);
 
     //==========================================================================================
     /** Calculates Cemgil accuracy but allowing for continuity-based allowed metrical levels
@@ -168,7 +168,6 @@ public:
      */
     static double evaluateBeatsInformationGain (std::vector<double> beats, std::vector<double> annotations, int numHistogramBins = 40);
 
-    static void removeElementsLessThanValue (std::vector<double>& array, double value);
     
 private:
     
@@ -186,7 +185,7 @@ private:
     static std::vector<double> getEveryOtherAnnotationStartingAtIndex (std::vector<double> annotations, int startIndex);
     static std::vector<int> getIndicesOfNonZeroElements (std::vector<double> array);
     static std::vector<double> removeIfLessThanValue (std::vector<double> array, double value);
-    //static void removeElementsLessThanValue (std::vector<double>& array, double value);
+    static void removeElementsLessThanValue (std::vector<double>& array, double value);
     static double medianOfVector (std::vector<int> vector);
     static int getIndexOfNearestElement (std::vector<double> array, double value);
     

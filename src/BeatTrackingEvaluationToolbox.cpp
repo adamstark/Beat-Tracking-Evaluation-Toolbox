@@ -315,7 +315,7 @@ double BeatTrackingEvaluationToolbox::evaluateBeatsGoto (std::vector<double> bea
     // find the index of the beats that are lower than the threshold
     for (int i = 0; i < beatError.size(); i++)
     {
-        if (beatError[i] < threshold)
+        if (fabs (beatError[i]) < threshold)
             sequenceOfCorrectBeats.push_back (i);
     }
     
@@ -611,13 +611,13 @@ BeatTrackingEvaluationToolbox::ContinuityEvaluationScores BeatTrackingEvaluation
     int longestContinuouslyCorrectSegment  = maxElement (lengthsOfContinuouslyCorrectlyTrackedBeats);
 
     // --------------------------------------------------
-    // I'm a bit confused about what the divisor should be in the final calculation....
+    // Adam: I'm a bit confused about what the divisor should be in the final calculation....
     
     // 1. approach taken in MADMOM and it seems sensible
-    double divisor = static_cast<double> (std::max (annotations.size(), beats.size()));
+    //double divisor = static_cast<double> (std::max (annotations.size(), beats.size()));
     
-    // 2. approach taken in old Python code (probably wrong)
-    // double divisor = static_cast<double> (beats.size());
+    // 2. approach taken in old Python code (possibly wrong, but going with it so Python and C++ match for now)
+    double divisor = static_cast<double> (beats.size());
     
     // 3. approach set out in the technical report
     // double divisor = static_cast<double> (annotations.size());

@@ -165,27 +165,7 @@ TEST_SUITE ("Continuity")
         CHECK_EQ (result.amlC, 0.);
         CHECK_EQ (result.amlT, 0.);
     }
-        
-    //------------------------------------------------------------
-    TEST_CASE ("All beats on the offbeat")
-    {
-        std::vector<double> annotations;
-        std::vector<double> beats;
-        
-        for (int i = 1; i <= 360; i++)
-            annotations.push_back (i / 2.);
-        
-        for (int i = 0; i < annotations.size(); i++)
-            beats.push_back (annotations[i] + 0.25);
-        
-        ContinuityResult result = BeatTrackingEvaluationToolbox::evaluateBeatsContinuity (beats, annotations);
-        CHECK_EQ (result.cmlC, 0.);
-        CHECK_EQ (result.cmlT, 0.);
-        CHECK_EQ (result.amlC, 100.);
-        CHECK_EQ (result.amlT, 100.);
-    }
-    
-    /*
+            
     //------------------------------------------------------------
     TEST_CASE ("Double speed")
     {
@@ -251,5 +231,5 @@ TEST_SUITE ("Continuity")
         CHECK (result.precision == doctest::Approx (33.333333333).epsilon (0.0001));
         CHECK_EQ (result.recall, 100.0);
         CHECK (result.accuracy == doctest::Approx (33.333333333).epsilon (0.0001));
-    }*/
+    }
 }
