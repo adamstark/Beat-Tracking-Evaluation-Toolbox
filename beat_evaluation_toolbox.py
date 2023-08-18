@@ -157,7 +157,7 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         
     # if annotations and beats are not lists of the same length
     if (len(annsList) < len(beatsList)):
-        print "Error: not enough annotations for beat sequences"
+        print ("Error: not enough annotations for beat sequences")
         return 0
     
     # get the number of files
@@ -182,7 +182,7 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
 
     # for each file
     for i in range(numFiles):
-        print "Evaluating file ",(i+1)
+        print ("Evaluating file ",(i+1))
             
         ################### if we are calculating all measures #################
         """
@@ -237,15 +237,15 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
                 #     scores_mean = np.average(scores,axis=0)
                 
 
-    print " "
-    print "--------------- Results ------------------"                
+    print (" ")
+    print ("--------------- Results ------------------")                
    
     if ('fMeasure' in measures) or ('all' in measures):
 
         results['scores']['fMeasure'] = np.array(scores_fMeasure)
         
         # print out fMeasure
-        print "fMeasure:  %.2f" % np.array(scores_fMeasure).mean()
+        print ("fMeasure:  %.2f" % np.array(scores_fMeasure).mean())
 
 
 
@@ -254,7 +254,7 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['cemgilAcc'] = np.array(scores_cemgilAcc)
         
         # print out cemgilAcc
-        print "cemgilAcc:  %.2f" % np.array(scores_cemgilAcc).mean()
+        print ("cemgilAcc:  %.2f" % np.array(scores_cemgilAcc).mean())
 
 
 
@@ -263,7 +263,7 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['gotoAcc'] = np.array(scores_gotoAcc)
         
         # print out gotoAcc
-        print "gotoAcc:  %.2f" % np.array(scores_gotoAcc).mean()
+        print ("gotoAcc:  %.2f" % np.array(scores_gotoAcc).mean())
 
 
 
@@ -272,7 +272,7 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         results['scores']['pScore'] = np.array(scores_pScore)
         
         # print out pScore
-        print "pScore:  %.2f" % np.array(scores_pScore).mean()
+        print ("pScore:  %.2f" % np.array(scores_pScore).mean())
 
 
 
@@ -289,66 +289,66 @@ def evaluate_db(annsList,beatsList,measures = 'all',doCI = False):
         r_cmlT = np.array(scores_cmlT).mean()
         r_amlC = np.array(scores_amlC).mean()
         r_amlT = np.array(scores_amlT).mean()        
-        print "cmlC:  %.2f   cmlT:  %.2f   amlC:  %.2f   amlT:  %.2f" % (r_cmlC,r_cmlT,r_amlC,r_amlT)
+        print ("cmlC:  %.2f   cmlT:  %.2f   amlC:  %.2f   amlT:  %.2f" % (r_cmlC,r_cmlT,r_amlC,r_amlT))
 
     if ('infoGain' in measures) or ('all' in measures):
         
         results['scores']['infoGain'] = np.array(scores_infoGain)
         
         # print out infoGain
-        print "infoGain:  %.2f" % np.array(scores_infoGain).mean()                    
+        print ("infoGain:  %.2f" % np.array(scores_infoGain).mean())                    
                 
     if ('amlCem' in measures) or ('all' in measures):
         
         results['scores']['amlCem'] = np.array(scores_amlCem)
         
         # print out amlCem
-        print "amlCem:  %.2f" % np.array(scores_amlCem).mean()
+        print ("amlCem:  %.2f" % np.array(scores_amlCem).mean())
     
-    print "------------------------------------------"
-    print " "
+    print ("------------------------------------------")
+    print (" ")
 
 
 
     # print confifence intervals
     if (doCI):
         
-        print " "
-        print "---------- Confidence Intervals ----------" 
+        print (" ")
+        print ("---------- Confidence Intervals ----------")
         
         if ('fMeasure' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_fMeasure))
-            print "fMeasure: [%.2f,%.2f]" % (lci,uci) 
+            print ("fMeasure: [%.2f,%.2f]" % (lci,uci)) 
 
         if ('cemgilAcc' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_cemgilAcc))
-            print "cemgilAcc: [%.2f,%.2f]" % (lci,uci) 
+            print ("cemgilAcc: [%.2f,%.2f]" % (lci,uci)) 
 
         if ('gotoAcc' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_gotoAcc))
-            print "gotoAcc: [%.2f,%.2f]" % (lci,uci) 
+            print ("gotoAcc: [%.2f,%.2f]" % (lci,uci))
 
         if ('pScore' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_pScore))
-            print "pScore: [%.2f,%.2f]" % (lci,uci) 
+            print ("pScore: [%.2f,%.2f]" % (lci,uci))
 
         if ('continuity' in measures) or ('all' in measures):      
             [l_cmlC,u_cmlC] = confidenceIntervals(np.array(scores_cmlC))
             [l_cmlT,u_cmlT] = confidenceIntervals(np.array(scores_cmlT))
             [l_amlC,u_amlC] = confidenceIntervals(np.array(scores_amlC))
             [l_amlT,u_amlT] = confidenceIntervals(np.array(scores_amlT))            
-            print "cmlC: [%.2f,%.2f] cmlT: [%.2f,%.2f] amlC: [%.2f,%.2f] amlT: [%.2f,%.2f]" % (l_cmlC,u_cmlC,l_cmlT,u_cmlT,l_amlC,u_amlC,l_amlT,u_amlT)
+            print ("cmlC: [%.2f,%.2f] cmlT: [%.2f,%.2f] amlC: [%.2f,%.2f] amlT: [%.2f,%.2f]" % (l_cmlC,u_cmlC,l_cmlT,u_cmlT,l_amlC,u_amlC,l_amlT,u_amlT))
 
         if ('infoGain' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_infoGain))
-            print "infoGain: [%.2f,%.2f]" % (lci,uci)                    
+            print ("infoGain: [%.2f,%.2f]" % (lci,uci))                    
 
         if ('amlCem' in measures) or ('all' in measures):
             [lci,uci] = confidenceIntervals(np.array(scores_amlCem))
-            print "amlCem: [%.2f,%.2f]" % (lci,uci)
+            print ("amlCem: [%.2f,%.2f]" % (lci,uci))
 
-        print "------------------------------------------"
-        print " "
+        print ("------------------------------------------")
+        print (" ")
 
     return results
 
@@ -369,7 +369,7 @@ def downbeatEvaluate_db(annsList,beatsList,doCI = False):
         
     # if annotations and beats are not lists of the same length
     if (len(annsList) < len(beatsList)):
-        print "Error: not enough annotations for beat sequences"
+        print ("Error: not enough annotations for beat sequences")
         return 0
     
     # get the number of files
@@ -385,36 +385,36 @@ def downbeatEvaluate_db(annsList,beatsList,doCI = False):
 
     # for each file
     for i in range(numFiles):
-        print "Evaluating file ",(i+1)
+        print ("Evaluating file ",(i+1))
         #[acc1,acc2,acc3] = downbeatEval(annsList[i],beatsList[i])
         dbScore = downbeatEval(annsList[i],beatsList[i])
         scores.append(dbScore)
         
 
-    print " "
-    print "--------------- Results ------------------"                
+    print (" ")
+    print ("--------------- Results ------------------")                
 
     results['scores']['downbeats'] = np.array(scores)
         
     # print out score
-    print "downbeats:  %.8f" % np.array(scores).mean()
+    print ("downbeats:  %.8f" % np.array(scores).mean())
     
-    print "------------------------------------------"
-    print " "
+    print ("------------------------------------------")
+    print (" ")
 
 
 
     # print confifence intervals
     if (doCI):
         
-        print " "
-        print "---------- Confidence Intervals ----------" 
+        print (" ")
+        print ("---------- Confidence Intervals ----------") 
 
         [lci,uci] = confidenceIntervals(np.array(scores))
-        print "downbeats: [%.2f,%.2f]" % (lci,uci) 
+        print ("downbeats: [%.2f,%.2f]" % (lci,uci))
 
-        print "------------------------------------------"
-        print " "
+        print ("------------------------------------------")
+        print (" ")
 
     return results
 
@@ -476,7 +476,7 @@ def downbeatEval(anns,downbeats,nbpb=downbeat_numBeatsPerBar):
             
     # Check if there are any beats, if not then exit
     if (downbeats.size < 3) or (anns.size < 3):
-        print "downbeat or annotation sequence is empty or too short, assigning zero to all outputs [acc1,acc2]"
+        print ("downbeat or annotation sequence is empty or too short, assigning zero to all outputs [acc1,acc2]")
         acc1 = np.zeros(nbpb)
         acc2 = np.array([0,0]) # only two values
         acc3 = 0
@@ -485,7 +485,7 @@ def downbeatEval(anns,downbeats,nbpb=downbeat_numBeatsPerBar):
 
     # also check that the beat times are in seconds and not any other time units
     if (max(downbeats) > 44100) or (max(anns) > 44100):
-        print "downbeat or annotation sequence is empty or too short, assigning zero to all outputs [acc1,acc2]"
+        print ("downbeat or annotation sequence is empty or too short, assigning zero to all outputs [acc1,acc2]")
 
         acc1 = np.zeros(nbpb)
         acc2 = np.array([0,0]) # only two values
@@ -580,7 +580,7 @@ def continuityBased(anns,beats):
             
     # Check if there are any beats, if not then exit
     if beats.size < 2:
-        print "beat sequence is empty or too short, assigning zero to all outputs [cmlC,cmlT,amlC,amlT]"
+        print ("beat sequence is empty or too short, assigning zero to all outputs [cmlC,cmlT,amlC,amlT]")
         cmlC = 0;
         cmlT = 0;
         amlC = 0;
@@ -589,7 +589,7 @@ def continuityBased(anns,beats):
 
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify. for now assigning zero to all outputs [cmlC,cmlT,amlC,amlT]"
+        print ("either beats or annotations are not in seconds, please rectify. for now assigning zero to all outputs [cmlC,cmlT,amlC,amlT]")
         cmlC = 0;
         cmlT = 0;
         amlC = 0;
@@ -655,8 +655,8 @@ def continuityBased(anns,beats):
 # =====================================================================================
 def ContinuityEval(anns,beats,t,p):
         
-    checkanns = np.zeros(max(anns.size,beats.size))
-    checkbeats = np.zeros(max(anns.size,beats.size))
+    checkanns = np.zeros(anns.size)
+    checkbeats = np.zeros(beats.size)
     
     cond = 0.
     
@@ -681,7 +681,7 @@ def ContinuityEval(anns,beats,t,p):
          
                         
         # for i^th beat what is the condition
-        checkbeats[i] = np.float(cond)
+        checkbeats[i] = float(cond)
     
     counts = [] # to hold length of continuously correct segments
     ct=0 # counter
@@ -696,8 +696,8 @@ def ContinuityEval(anns,beats,t,p):
     # in case every beat was correct, append the last value of the count
     counts.append(ct)
                 
-    totAcc = 100.0*(np.sum(checkbeats)/np.float(checkbeats.size));
-    contAcc = 100.0*(np.float(max(counts))/np.float(checkbeats.size));
+    totAcc = 100.0*(np.sum(checkbeats)/float(checkbeats.size));
+    contAcc = 100.0*(float(max(counts))/float(checkbeats.size));
     return [totAcc,contAcc]
 
 
@@ -727,13 +727,13 @@ def cemgilAcc(anns,beats):
     
     # Check if there are any beats, if not then exit
     if beats.size == 0:
-        print "beat sequence is empty, assigning zero to all outputs [a]"
+        print ("beat sequence is empty, assigning zero to all outputs [a]")
         a = 0
         return a
     
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         a = 0
         return a
 
@@ -754,7 +754,7 @@ def cemgilAcc(anns,beats):
         a = a + np.exp(-np.power(beatDiff,2.0) / (2.0*np.power(sigma,2.0)))
 
     # normalise by the mean of the number of annotations and beats
-    a = a/(0.5*(np.float(beats.size) + np.float(anns.size)))
+    a = a/(0.5*(float(beats.size) + float(anns.size)))
 
     # put into the range 0 to 100%
     a = a*100.0;
@@ -787,13 +787,13 @@ def amlCem(anns,beats):
 
     # Check if there are any beats, if not then exit
     if beats.size == 0:
-        print "beat sequence is empty, assigning zero to all outputs [amlCem]"
+        print ("beat sequence is empty, assigning zero to all outputs [amlCem]")
         amlCem = 0
         return amlCem
 
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         amlCem = 0
         return amlCem
 
@@ -863,7 +863,7 @@ def fMeasure(anns,beats):
     
     # Check if there are any beats, if not then exit
     if beats.size == 0:
-        print "beat sequence is empty, assigning zero to all outputs [f,p,r,a]"
+        print ("beat sequence is empty, assigning zero to all outputs [f,p,r,a]")
         f = 0
         p = 0
         r = 0
@@ -872,7 +872,7 @@ def fMeasure(anns,beats):
     
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         f = 0
         p = 0
         r = 0
@@ -905,11 +905,11 @@ def fMeasure(anns,beats):
             if (beats[j] >= windowMin) and (beats[j] <= windowMax):
                 beatstoadd.append(j)
         
-
-        # now remove these beats so it can't be counted again
         for k in range(len(beatstoadd)):
             beatsinwindow.append(beatstoadd[k])
-            beats = np.delete(beats,beatstoadd[k])
+            
+        # now remove these beats so it can't be counted again
+        beats = np.delete(beats,beatstoadd)
 
         if (len(beatsinwindow) == 0):      # no beats in window, therefore it's a false negative
             fn = fn +1;
@@ -926,27 +926,27 @@ def fMeasure(anns,beats):
                 
     # calculate precision, p
     if ((hits+fp) > 0):
-        p = 100*(np.float(hits)/np.float(hits+fp))
+        p = 100*(float(hits)/float(hits+fp))
     else:
         p = 0
 
 
     # calculate recall, r
     if ((hits+fn) > 0):
-        r = 100*(np.float(hits)/np.float(hits+fn))
+        r = 100*(float(hits)/float(hits+fn))
     else:
         r = 0
 
     # now calculate the f-measure
     if ((p+r) > 0):
-        f = 2.0*np.float(p)*np.float(r)/np.float(p+r)
+        f = 2.0*float(p)*float(r)/float(p+r)
     else:
         f = 0
 
 
     # this is Dixon's related accuracy measure from (Dixon, 2001)
     if ((hits+fp+fn) > 0):
-        a = 100.0*np.float(hits)/np.float(hits+fp+fn)
+        a = 100.0*float(hits)/float(hits+fp+fn)
     else:
         a = 0
 
@@ -982,13 +982,13 @@ def pScore(anns,beats):
     
     # Check if there are any beats, if not then exit
     if beats.size == 0:
-        print "beat sequence is empty, assigning zero to all outputs [p]"
+        print ("beat sequence is empty, assigning zero to all outputs [p]")
         p = 0
         return p
     
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         p = 0
         return p
 
@@ -998,25 +998,25 @@ def pScore(anns,beats):
     # quantize beats to 10ms resolution
     fs = 100
 
-    endPoint = np.int(np.ceil(max(anns.max(),beats.max())))
+    endPoint = int(np.ceil(max(anns.max(),beats.max())))
 
     # make impulse trains from beat times, take those beats only greater than 5 seconds
     annsTrain = np.zeros(endPoint*fs)
     beatsTrain = np.zeros(endPoint*fs)
 
     for i in range(anns.size):
-        index = np.int(np.ceil(anns[i]*fs))-1
+        index = int(np.ceil(anns[i]*fs))-1
         annsTrain[index] = 1.0
 
 
     for i in range(beats.size):
-        index = np.int(np.ceil(beats[i]*fs))-1
+        index = int(np.ceil(beats[i]*fs))-1
         beatsTrain[index] = 1.0
 
     
     W = np.round(thresh*np.median(np.diff(np.nonzero(annsTrain)[0])))
             
-    W = np.int(W)
+    W = int(W)
 
     p = be_xcorr(beatsTrain,annsTrain,W).sum() /   max(np.nonzero(beatsTrain)[0].size,np.nonzero(annsTrain)[0].size)
     
@@ -1088,13 +1088,13 @@ def gotoAcc(anns,beats):
     
     # Check if there are any beats, if not then exit
     if beats.size == 0:
-        print "beat sequence is empty or too short, assigning zero to all outputs [a]"
+        print ("beat sequence is empty or too short, assigning zero to all outputs [a]")
         a = 0
         return a
     
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         a = 0
         return a
 
@@ -1137,12 +1137,12 @@ def gotoAcc(anns,beats):
             # it's paired beat, so measure beat error
             paired[k] = 1
 
-            newError = np.float(beats[a1[0]] - anns[k])
+            newError = float(beats[a1[0]] - anns[k])
 
             if (newError<0): # if negative use pre_interval
-                beatError[k] = np.float(newError)/np.float(preInterval)
+                beatError[k] = float(newError)/float(preInterval)
             else: # else positive so use subsequent inter annotation interval
-                beatError[k] = np.float(newError)/np.float(postInterval)
+                beatError[k] = float(newError)/float(postInterval)
 
 
     b1 = np.where(np.abs(beatError) > thresh)[0]
@@ -1208,24 +1208,24 @@ def informationGain(anns,beats):
     
     # Check if there are any beats, if not then exit
     if (beats.size < 2) or (anns.size < 2):
-        print "beat or annotation sequence is empty or too short, assigning zero to information gain [D] and a uniform beat error histogram"
+        print ("beat or annotation sequence is empty or too short, assigning zero to information gain [D] and a uniform beat error histogram")
         I = 0
         # slight stretch here, to get totally uniform, use non-integer bin heights
-        binVals = np.zeros(numBins) + np.float(anns.size)/np.float(numBins)
+        binVals = np.zeros(numBins) + float(anns.size)/float(numBins)
         return [I,binVals]
 
 
     # also check that the beat times are in seconds and not any other time units
     if (max(beats) > 5000) or (max(anns) > 5000):
-        print "either beats or annotations are not in seconds, please rectify."
+        print ("either beats or annotations are not in seconds, please rectify.")
         I = 0
         # slight stretch here, to get totally uniform, use non-integer bin heights
-        binVals = np.zeros(numBins) + np.float(anns.size)/np.float(numBins)
+        binVals = np.zeros(numBins) + float(anns.size)/float(numBins)
         return [I,binVals]
 
-    b_start = (-0.5+0.5*(1./(np.float(numBins)-1.)))
-    b_end = (0.5-0.5*(1./(np.float(numBins)-1.)))
-    b_step = 1./(np.float(numBins)-1.)
+    b_start = (-0.5+0.5*(1./(float(numBins)-1.)))
+    b_end = (0.5-0.5*(1./(float(numBins)-1.)))
+    b_step = 1./(float(numBins)-1.)
 
     histBins = np.arange(b_start,b_end+b_step,b_step)
     histBins = np.append(histBins,0.5)
@@ -1250,7 +1250,7 @@ def informationGain(anns,beats):
     
     histBins = histBins[0:histBins.size-1]
 
-    I = np.log2(np.float(numBins)) - maxEntropy
+    I = np.log2(float(numBins)) - maxEntropy
 
     return [I,binVals]
 
@@ -1342,7 +1342,7 @@ def FindEntropy(beatError,histBins):
     binVals = rawBinVals;
     
     # convert array from int to float
-    binVals = binVals.astype(np.float)
+    binVals = binVals.astype(float)
     
     # make sure the bins heights sum to unity
     binVals = binVals/binVals.sum()
@@ -1397,7 +1397,7 @@ def confidenceIntervals(scores):
     
     for sample in range(numSamples):
         # get random sampling from scores
-        randomSamples = np.ceil(np.random.random(numScores)*np.float(numScores))-1
+        randomSamples = np.ceil(np.random.random(numScores)*float(numScores))-1
         randomSamples.sort()
         
         tmp = np.zeros(randomSamples.size)        
