@@ -81,26 +81,35 @@ static PyObject * evaluate(PyObject *dummy, PyObject *args)
 
 //=======================================================================
 static PyMethodDef beat_tracking_evaluation_toolbox_methods[] = {
-    { "evaluate",evaluate,METH_VARARGS,"Evaluate a given beat sequence and annotation sequence"},
+    { "evaluate", evaluate, METH_VARARGS,"Evaluate a given beat sequence and annotation sequence"},
     {NULL, NULL, 0, NULL} /* Sentinel */
 };
 
 //=======================================================================
-PyMODINIT_FUNC initbeat_tracking_evaluation_toolbox(void)
+static struct PyModuleDef beat_tracking_evaluation_toolbox_definition = {
+    PyModuleDef_HEAD_INIT,
+    "beat_tracking_evaluation_toolbox",
+    "A toolbox of beat tracking evaluation methods",
+    -1,
+    beat_tracking_evaluation_toolbox_methods
+};
+
+//=======================================================================
+PyMODINIT_FUNC PyInit_beat_tracking_evaluation_toolbox(void)
 {
-    (void)Py_InitModule("beat_tracking_evaluation_toolbox", beat_tracking_evaluation_toolbox_methods);
     import_array();
+    return PyModule_Create(&beat_tracking_evaluation_toolbox_definition);
 }
 
 //=======================================================================
 int main(int argc, char *argv[])
 {
-    /* Pass argv[0] to the Python interpreter */
-    Py_SetProgramName(argv[0]);
+    wchar_t* program = Py_DecodeLocale (argv[0], NULL);
+    Py_SetProgramName (program);
     
     /* Initialize the Python interpreter.  Required. */
     Py_Initialize();
     
     /* Add a static module */
-    initbeat_tracking_evaluation_toolbox();
+    PyInit_beat_tracking_evaluation_toolbox();
 }

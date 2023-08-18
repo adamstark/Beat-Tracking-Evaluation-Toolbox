@@ -12,5 +12,5 @@ include_dirs = [
 
 setup( name = 'BeatTrackingEvaluationToolbox',
       include_dirs = include_dirs,
-      ext_modules = [Extension(name, sources,libraries = [],library_dirs = ['/usr/local/lib'])]
+      ext_modules = [Extension(name, sources, extra_compile_args = ["-std=c++14"], libraries = [],library_dirs = ['/usr/local/lib'])]
       )
