@@ -64,7 +64,7 @@ TEST_SUITE ("PScore")
         for (int i = 0; i < annotations.size(); i++)
             beats.push_back (annotations[i] + randomPositiveOrNegativeOffset (0., 0.1));
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsPScore (beats, annotations);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsPScore (beats, annotations, 0.2, 0.);
         CHECK_EQ (result, 100.);
     }
     

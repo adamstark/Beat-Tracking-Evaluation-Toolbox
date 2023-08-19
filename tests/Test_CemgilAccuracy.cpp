@@ -10,7 +10,7 @@ TEST_SUITE ("Cemgil Accuracy")
     //------------------------------------------------------------
     TEST_CASE ("Both Empty Sequences")
     {
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), std::vector<double>());
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), std::vector<double>(), 0.04, 0.);
         CHECK_EQ (result, 0.0);
     }
     
@@ -22,7 +22,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 1; i <= 360; i++)
             annotations.push_back (i / 2.);
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), annotations);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (std::vector<double>(), annotations, 0.04, 0.);
         CHECK_EQ (result, 0.0);
     }
     
@@ -34,7 +34,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 1; i <= 360; i++)
             beats.push_back (i / 2.);
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, std::vector<double>());
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, std::vector<double>(), 0.04, 0.);
         CHECK_EQ (result, 0.0);
     }
     
@@ -46,7 +46,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 1; i <= 360; i++)
             beats.push_back (i / 2.);
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, beats);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, beats, 0.04, 0.);
         
         CHECK_EQ (result, 100.0);
     }
@@ -65,7 +65,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 0; i < annotations.size(); i++)
             beats.push_back (annotations[i] + randomSign() * offsetInSeconds);
         
-        return BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations);
+        return BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations, 0.04, 0.);
     }
     
     //------------------------------------------------------------
@@ -143,7 +143,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 0; i < annotations.size(); i++)
             beats.push_back (annotations[i] + 0.25);
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations, 0.04, 0.);
         
         CHECK (result == doctest::Approx (0.).epsilon (0.0001));
     }
@@ -163,7 +163,7 @@ TEST_SUITE ("Cemgil Accuracy")
             beats.push_back (annotations[i] + 0.25);
         }
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations, 0.04, 0.);
     
         CHECK (result == doctest::Approx (66.66666667).epsilon (0.0001));
     }
@@ -180,7 +180,7 @@ TEST_SUITE ("Cemgil Accuracy")
         for (int i = 0; i < annotations.size(); i += 2)
             beats.push_back (annotations[i]);
         
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (beats, annotations, 0.04, 0.);
         
         CHECK (result == doctest::Approx (66.66666667).epsilon (0.0001));
     }
@@ -188,14 +188,14 @@ TEST_SUITE ("Cemgil Accuracy")
     //------------------------------------------------------------
     TEST_CASE ("Sample Sequence 1 - Compare to MADMOM")
     {
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats1, examples::annotations1);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats1, examples::annotations1, 0.04, 0.);
         CHECK (result == doctest::Approx (85.82089134179277).epsilon (0.0001));
     }
     
     //------------------------------------------------------------
     TEST_CASE ("Sample Sequence 2 - Compare to MADMOM")
     {
-        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats2, examples::annotations2);
+        double result = BeatTrackingEvaluationToolbox::evaluateBeatsCemgilAccuracy (examples::beats2, examples::annotations2, 0.04, 0.);
         CHECK (result == doctest::Approx (70.2781695147737).epsilon (0.0001));
     }
     

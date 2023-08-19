@@ -77,7 +77,7 @@ TEST_SUITE ("FMeasure")
         for (int i = 0; i < annotations.size(); i++)
             beats.push_back (annotations[i] + randomPositiveOrNegativeOffset (0., 0.06));
         
-        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations);
+        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations, 0.07, 0.);
         
         CHECK_EQ (result.fMeasure, 100.0);
         CHECK_EQ (result.precision, 100.0);
@@ -160,7 +160,7 @@ TEST_SUITE ("FMeasure")
         for (int i = 0; i < annotations.size(); i += 2)
             beats.push_back (annotations[i]);
         
-        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations);
+        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations, 0.07, 0.);
         
         CHECK (result.fMeasure == doctest::Approx (66.6666666667).epsilon (0.0001));
         CHECK_EQ (result.precision, 100.0);
@@ -184,7 +184,7 @@ TEST_SUITE ("FMeasure")
             beats.push_back (annotations[i] - 0.01);
         }
         
-        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations);
+        FMeasureResult result = BeatTrackingEvaluationToolbox::evaluateBeatsFMeasure (beats, annotations, 0.07, 0.);
         
         CHECK (result.fMeasure == doctest::Approx (50).epsilon (0.0001));
         CHECK (result.precision == doctest::Approx (33.333333333).epsilon (0.0001));
