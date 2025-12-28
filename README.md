@@ -6,6 +6,12 @@ This repository implements a number of beat tracking evaluation methods, describ
 
 Implementation by Adam Stark and Matthew Davies
 
+## Install
+
+Run:
+
+    pip install beat-tracking-evaluation
+
 ## Running the code (Python)
 
 First, import the library:
