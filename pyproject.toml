@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "beat-tracking-evaluation"
+version = "1.1.0"
+description = "Beat tracking evaluation measures"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "Adam Stark" },
+    {name = "Matthew Davies"}
+]
+keywords = ["beat tracking", "music information retrieval", "evaluation", "mir"]
+dependencies = [
+    "numpy>=1.20.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/adamstark/Beat-Tracking-Evaluation-Toolbox"
+Repository = "https://github.com/adamstark/Beat-Tracking-Evaluation-Toolbox"
