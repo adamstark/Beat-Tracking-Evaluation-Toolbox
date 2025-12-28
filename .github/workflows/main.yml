@@ -2,10 +2,6 @@ name: Publish to PyPI
 
 on:
   push:
-    branches:
-      - master
-      - develop
-      - "release/*"
     tags:
       - "*.*.*"
 
@@ -30,7 +26,6 @@ jobs:
         run: python -m build
 
       - name: Publish to PyPI
-        if: false
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
